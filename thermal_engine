@@ -1,0 +1,124 @@
+"""
+Module thermal_engine.py - Moteur de calcul du bilan thermique et de dimensionnement HVAC.
+Calcule les pertes thermiques des équipements électriques (disjoncteurs, variateurs)
+et les apports surfaciques du bâtiment (CLTD).
+"""
+
+class ThermalEngine:
+    
+    # Base de données indicative des pertes thermiques unitaires (en Watts)
+    DISJONCTEURS_DB = {
+        "C60 / iC60 10A-32A": 3.5,
+        "NSX100 100A": 15.0,
+        "NSX250 250A": 35.0,
+        "NSX400 400A": 60.0,
+        "NSX630 630A": 90.0,
+        "NW10 1000A": 150.0,
+        "NW20 2000A": 320.0,
+        "NW40 4000A": 650.0
+    }
+
+    VARIATEURS_DB = {
+        "ATV320 0.75 kW": 40.0,
+        "ATV320 2.2 kW": 85.0,
+        "ATV630 5.5 kW": 180.0,
+        "ATV630 11 kW": 320.0,
+        "ATV630 22 kW": 580.0,
+        "ATV630 45 kW": 1100.0,
+        "ATV630 75 kW": 1750.0,
+        "ATV630 110 kW": 2600.0
+    }
+
+    # Coefficients d'échange thermique U (W/m².K)
+    U_WALLS = {
+        "Léger (Béton non isolé / Brique 15cm)": 2.2,
+        "Moyen (Brique creuse + isolation 5cm)": 0.65,
+        "Lourd Isolation Haute Perf (Panneau sandwich 10cm)": 0.28
+    }
+
+    U_ROOFS = {
+        "Dalle Béton non isolée": 2.5,
+        "Toiture Isolée Standard (5cm laine de roche)": 0.50,
+        "Toiture Panneau Sandwich Haute Perf (10cm PUR)": 0.22
+    }
+
+    @classmethod
+    def compute_components_losses(cls, selected_disjoncteurs, selected_variateurs, load_factor=0.8):
+        """
+        Calcule la dissipation thermique totale des équipements électriques (Watt)
+        - Dissipation disjoncteurs ~ (I/I_nom)^2 * P_nom
+        - Dissipation variateurs ~ charge linéaire
+        """
+        q_disjoncteurs = 0.0
+        q_variateurs = 0.0
+
+        for item in selected_disjoncteurs:
+            model = item.get("model")
+            qty = item.get("quantity", 1)
+            p_nom = cls.DISJONCTEURS_DB.get(model, 20.0)
+            q_disjoncteurs += qty * p_nom * (load_factor ** 2)
+
+        for item in selected_variateurs:
+            model = item.get("model")
+            qty = item.get("quantity", 1)
+            p_nom = cls.VARIATEURS_DB.get(model, 200.0)
+            q_variateurs += qty * p_nom * load_factor
+
+        q_total_elec = q_disjoncteurs + q_variateurs
+        return q_total_elec, q_disjoncteurs, q_variateurs
+
+    @classmethod
+    def compute_building_cltd(cls, length, width, height, wall_type, roof_type, t_ext, t_int, lighting_w_m2=10.0, ach=0.5):
+        """
+        Calcule les apports thermiques du bâtiment (enveloppe + éclairage + infiltration d'air).
+        """
+        area_floor = length * width
+        area_roof = area_floor
+        area_walls = 2 * (length + width) * height
+        volume = area_floor * height
+
+        u_wall = cls.U_WALLS.get(wall_type, 0.65)
+        u_roof = cls.U_ROOFS.get(roof_type, 0.50)
+
+        delta_t = max(0.0, t_ext - t_int)
+
+        q_walls = area_walls * u_wall * delta_t
+        q_roof = area_roof * u_roof * delta_t
+        q_lighting = area_floor * lighting_w_m2
+        q_ventilation = volume * (ach / 3600.0) * 1200.0 * delta_t
+
+        q_building_total = q_walls + q_roof + q_lighting + q_ventilation
+
+        return {
+            "area_floor": area_floor,
+            "area_walls": area_walls,
+            "volume": volume,
+            "q_walls_w": q_walls,
+            "q_roof_w": q_roof,
+            "q_lighting_w": q_lighting,
+            "q_ventilation_w": q_ventilation,
+            "q_building_total_w": q_building_total
+        }
+
+    @staticmethod
+    def compute_hvac_sizing(q_elec_w, q_building_w, margin_pct=15.0, derating_factor=0.9):
+        """
+        Calcule la puissance frigorifique finale requise avec marge de sécurité et déclassement.
+        """
+        q_total_net_w = q_elec_w + q_building_w
+        q_with_margin_w = q_total_net_w * (1.0 + margin_pct / 100.0)
+        q_required_kw = (q_with_margin_w / 1000.0) / derating_factor
+
+        q_required_btu = q_required_kw * 3412.14
+
+        return {
+            "q_elec_w": q_elec_w,
+            "q_building_w": q_building_w,
+            "q_total_net_w": q_total_net_w,
+            "q_with_margin_w": q_with_margin_w,
+            "units": {
+                "kw": q_required_kw,
+                "btu_h": q_required_btu,
+                "tons": q_required_btu / 12000.0
+            }
+        }

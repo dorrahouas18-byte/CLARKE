@@ -1,0 +1,149 @@
+{
+    "disjoncteurs": [
+        {
+            "fabricant": "Schneider Electric",
+            "serie": "NSX",
+            "modele": "NSX100H",
+            "calibre": 100.0,
+            "pertes_nominales_w": 15.0,
+            "pertes_w": 60.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": 0.15000000000000002
+        },
+        {
+            "fabricant": "Schneider Electric",
+            "serie": "NSX",
+            "modele": "NSX250F",
+            "calibre": 250.0,
+            "pertes_nominales_w": 35.0,
+            "pertes_w": 60.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": 0.3500000000000001
+        },
+        {
+            "fabricant": "Schneider Electric",
+            "serie": "Masterpact",
+            "modele": "MTZ1 16",
+            "calibre": 1600.0,
+            "pertes_nominales_w": 180.0,
+            "pertes_w": 60.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": 1.8000000000000003
+        },
+        {
+            "fabricant": "ABB",
+            "serie": "Tmax",
+            "modele": "XT2N",
+            "calibre": 160.0,
+            "pertes_nominales_w": 22.0,
+            "pertes_w": 60.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": 0.22000000000000003
+        },
+        {
+            "fabricant": "ABB",
+            "serie": "Emax2",
+            "modele": "E2.2",
+            "calibre": 2000.0,
+            "pertes_nominales_w": 240.0,
+            "pertes_w": 60.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": 2.4000000000000004
+        },
+        {
+            "fabricant": "Schneider Electric",
+            "serie": NaN,
+            "modele": "ex: NSX400 3P",
+            "calibre": NaN,
+            "pertes_nominales_w": NaN,
+            "pertes_w": 25.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": NaN
+        },
+        {
+            "fabricant": "Schneider Electric",
+            "serie": NaN,
+            "modele": "ex: NSX400 3P",
+            "calibre": NaN,
+            "pertes_nominales_w": NaN,
+            "pertes_w": 25.0,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 10.0,
+            "pertes_effectives_w": NaN
+        },
+        {
+            "fabricant": "Schneider Electric",
+            "serie": NaN,
+            "modele": "NSX100N 3P",
+            "calibre": NaN,
+            "pertes_nominales_w": 15.0,
+            "pertes_w": NaN,
+            "calibre_a": 100.0,
+            "taux_charge_pct": 80.0,
+            "pertes_effectives_w": 9.600000000000001
+        },
+        {
+            "fabricant": "ABB",
+            "serie": NaN,
+            "modele": "NSX100N 3P",
+            "calibre": NaN,
+            "pertes_nominales_w": 14.0,
+            "pertes_w": NaN,
+            "calibre_a": 110.0,
+            "taux_charge_pct": 76.0,
+            "pertes_effectives_w": 8.0864
+        }
+    ],
+    "variateurs": [
+        {
+            "fabricant": "Danfoss",
+            "modele": "VLT AutomationDrive FC 302",
+            "puissance_kw": 11.0,
+            "rendement": 0.97,
+            "pertes_w": 330
+        },
+        {
+            "fabricant": "Danfoss",
+            "modele": "VLT AutomationDrive FC 302",
+            "puissance_kw": 45.0,
+            "rendement": 0.98,
+            "pertes_w": 900
+        },
+        {
+            "fabricant": "Danfoss",
+            "modele": "VLT AQUA Drive FC 202",
+            "puissance_kw": 75.0,
+            "rendement": 0.98,
+            "pertes_w": 1500
+        }
+    ],
+    "variateurs_danfoss_fc202": [
+        {
+            "code": "P11K-FC202",
+            "puissance_kw": 11.0,
+            "pertes_w": 392.0,
+            "taux_charge_pct": 100,
+            "pertes_effectives_w": 392.0
+        },
+        {
+            "code": "P11K-FC202",
+            "puissance_kw": 11.0,
+            "pertes_w": 392.0,
+            "taux_charge_pct": 100,
+            "pertes_effectives_w": 392.0
+        },
+        {
+            "code": "P11K-FC202",
+            "puissance_kw": 11.0,
+            "pertes_w": 392.0,
+            "taux_charge_pct": 100,
+            "pertes_effectives_w": 392.0
+        }
+    ]
+}
