@@ -10,7 +10,6 @@ from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-from templates import ARMOIRE_A_DEPARTS_STANDARDS
 
 class PDFReportGenerator:
     @staticmethod
