@@ -186,16 +186,6 @@ if "local" not in st.session_state:
         "lighting_w_m2": 10.0, "ach": 1.5, "occupants": 1
     }
 
-# --- Configuration des Armoires A ---
-if "config_armoires" not in st.session_state:
-    st.session_state.config_armoires = {
-        "nb": 1,
-        "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
-        "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
-    }
-if "nb_armoires_a" not in st.session_state:
-    st.session_state.nb_armoires_a = 1  # Ancienne variable (plus utilisée par l'UI)
-
 # --- Configuration TGBT ---
 if "tgbt_components" not in st.session_state:
     st.session_state.tgbt_components = []
@@ -203,12 +193,6 @@ if "pertes_tgbt_w" not in st.session_state:
     st.session_state.pertes_tgbt_w = 0.0
 
 # --- Configuration des Armoires A ---
-if "config_armoires" not in st.session_state:
-    st.session_state.config_armoires = {
-        "nb": 1,
-        "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
-        "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
-    }
 if "nb_armoires_a" not in st.session_state:
     st.session_state.nb_armoires_a = 1  
 
