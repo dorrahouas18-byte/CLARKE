@@ -1,5 +1,6 @@
 """
-Module rapport.py - Génération de rapport PDF professionnel pour AC Sizing Pro
+Module rapport.py - Génération de rapport PDF pour AC Sizing Pro
+Adapté à la nouvelle structure : Armoires A, TGBT, Armoires Auxiliaires
 """
 import os
 from datetime import datetime
@@ -13,15 +14,32 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 class PDFReportGenerator:
     @staticmethod
-    def generate(filename, project, building, armoires, disjoncteurs, variateurs, bilan):
+    def generate(
+        filename: str,
+        project: dict,
+        building: dict,
+        armoires: dict,
+        disjoncteurs: list,
+        variateurs: list,
+        bilan: dict,
+        auxiliaires: dict = None
+    ):
         """
-        Génère un rapport PDF 
+        Génère un rapport PDF complet.
+
+        Paramètres :
+        - filename : chemin du fichier PDF
+        - project : dict avec les données du projet
+        - building : dict avec les données du local
+        - armoires : dict avec "nb" et "pertes_totales" pour les Armoires A
+        - disjoncteurs : liste des composants TGBT (ou liste reconstruite)
+        - variateurs : liste des composants TGBT (ou liste reconstruite)
+        - bilan : dict avec "total_equipements", "apports_batiment", "margin_pct", "units"
+        - auxiliaires : dict (optionnel) avec "quantite", "pertes_totales", "components"
         """
         # --- Gestion du dossier de sortie ---
         folder = os.path.dirname(filename)
         if folder:
-            if os.path.exists(folder) and not os.path.isdir(folder):
-                os.remove(folder)
             os.makedirs(folder, exist_ok=True)
 
         # --- Configuration du document ---
@@ -34,10 +52,8 @@ class PDFReportGenerator:
             bottomMargin=2*cm
         )
 
-        # --- Styles personnalisés ---
+        # --- Styles ---
         styles = getSampleStyleSheet()
-        
-        # Style du titre principal
         title_style = ParagraphStyle(
             'TitleStyle',
             parent=styles['Heading1'],
@@ -47,8 +63,6 @@ class PDFReportGenerator:
             alignment=TA_CENTER,
             fontName='Helvetica-Bold'
         )
-        
-        # Style du sous-titre
         subtitle_style = ParagraphStyle(
             'SubtitleStyle',
             parent=styles['Normal'],
@@ -58,38 +72,25 @@ class PDFReportGenerator:
             spaceAfter=12,
             fontName='Helvetica'
         )
-        
-        # Style des titres de section
         h2_style = ParagraphStyle(
             'H2Style',
             parent=styles['Heading2'],
             fontSize=13,
-            textColor=colors.HexColor('#1A3A6B'), 
+            textColor=colors.HexColor('#1A3A6B'),
             spaceBefore=12,
             spaceAfter=6,
             fontName='Helvetica-Bold'
         )
-        
-        # Style normal
         normal_style = styles['Normal']
         normal_style.fontName = 'Helvetica'
-        
-        # Style pour les valeurs importantes
-        value_style = ParagraphStyle(
-            'ValueStyle',
-            parent=normal_style,
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor('#2B6CB0')
-        )
 
         story = []
 
-        # --- Ajout du logo Clarke Energy ---
+        # --- Logo Clarke Energy ---
         logo_path = "assets/Logo1.png"
         try:
             if os.path.exists(logo_path):
                 logo_img = Image(logo_path, width=4*cm, height=2*cm)
-                # Centrer le logo
                 logo_table = Table([[logo_img]], colWidths=[doc.width])
                 logo_table.setStyle(TableStyle([
                     ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -100,21 +101,20 @@ class PDFReportGenerator:
                 story.append(logo_table)
                 story.append(Spacer(1, 0.3*cm))
         except Exception:
-            pass  # Si le logo n'est pas trouvé, on continue sans
+            pass
 
-        # --- Titre et date ---
+        # --- Titre ---
         story.append(Paragraph("Bilan Thermique et Dimensionnement AC", title_style))
         story.append(Paragraph("Clarke Energy", subtitle_style))
         story.append(Spacer(1, 0.3*cm))
         story.append(Paragraph(
             f"<i>Rapport généré le {datetime.today().strftime('%d/%m/%Y à %H:%M')}</i>",
-            styles['Normal']
+            normal_style
         ))
         story.append(Spacer(1, 0.8*cm))
 
-        # ---- 1. Cartouche Projet ----
+        # ---- 1. Identification du Projet ----
         story.append(Paragraph("1. Identification du Projet", h2_style))
-        # Données sous forme de tableau 2 colonnes
         proj_items = [
             ("Projet", project.get("nom", "N/A")),
             ("Client", project.get("client", "N/A")),
@@ -122,10 +122,9 @@ class PDFReportGenerator:
             ("Ingénieur", project.get("ingenieur", "N/A")),
             ("Date", project.get("date", "N/A")),
             ("Statut", project.get("statut", "APS")),
-            ("Température extérieure", f"{project.get('t_ext', 40.0)} °C"),
-            ("Température intérieure", f"{project.get('t_int', 25.0)} °C"),
+            ("T° extérieure", f"{project.get('t_ext', 40.0)} °C"),
+            ("T° intérieure", f"{project.get('t_int', 25.0)} °C"),
         ]
-        # Transformer en tableau 4 colonnes
         proj_table = []
         for i in range(0, len(proj_items), 2):
             left_label, left_val = proj_items[i]
@@ -183,52 +182,30 @@ class PDFReportGenerator:
         story.append(Spacer(1, 0.8*cm))
 
         # ---- 3. Armoires A ----
-        story.append(Paragraph("3. Armoires A", h2_style))
+        story.append(Paragraph("3. Armoires A (standard)", h2_style))
         nb_armoires = armoires.get('nb', 0)
-        pertes_unitaire = armoires.get('pertes_unitaire', 0)
         pertes_totales = armoires.get('pertes_totales', 0)
-        armoires_text = f"""
-        <b>Nombre d'armoires A :</b> {nb_armoires}<br/>
-        <b>Pertes unitaires :</b> {pertes_unitaire:.1f} W<br/>
-        <b>Pertes totales :</b> {pertes_totales:.1f} W ({pertes_totales/1000:.2f} kW)
-        """
-        story.append(Paragraph(armoires_text, normal_style))
-        story.append(Spacer(1, 0.3*cm))
+        story.append(Paragraph(
+            f"<b>Nombre d'armoires :</b> {nb_armoires} &nbsp;&nbsp;|&nbsp;&nbsp; "
+            f"<b>Pertes totales :</b> {pertes_totales:.1f} W ({pertes_totales/1000:.2f} kW)",
+            normal_style
+        ))
+        story.append(Spacer(1, 0.5*cm))
 
-        if ARMOIRE_A_DEPARTS_STANDARDS:
-            story.append(Paragraph("Détail des départs (1 armoire) :", normal_style))
-            dep_data = [["Départ", "Type", "Équipement", "Pertes (W)"]]
-            for d in ARMOIRE_A_DEPARTS_STANDARDS:
-                dep_data.append([d['depart'], d['type'], d['equipement'], f"{d['pertes_w']:.1f}"])
-            t_dep = Table(dep_data, colWidths=[4*cm, 3*cm, 6*cm, 3*cm])
-            t_dep.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2B6CB0')),
-                ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0,0), (-1,0), 9),
-                ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-                ('PADDING', (0,0), (-1,-1), 4),
-                ('FONTSIZE', (0,1), (-1,-1), 8),
-                ('ALIGN', (3,0), (3,-1), 'CENTER'),
-            ]))
-            story.append(t_dep)
-        story.append(Spacer(1, 0.8*cm))
-
-        # ---- 4. Disjoncteurs configurés ----
-        story.append(Paragraph("4. Disjoncteurs configurés", h2_style))
+        # ---- 4. TGBT ----
+        story.append(Paragraph("4. TGBT (Tableau Général Basse Tension)", h2_style))
         if disjoncteurs and len(disjoncteurs) > 0:
-            disj_data = [["Modèle", "Qté", "Charge (%)", "Pertes unit. (W)", "Total (W)"]]
-            total_disj = 0
+            disj_data = [["Composant", "Qté", "Puissance unit. (W)", "Total (W)"]]
+            total_tgbt = 0
             for item in disjoncteurs:
                 disj_data.append([
-                    item.get('modele', 'N/A'),
+                    item.get('nom', 'N/A'),
                     str(item.get('quantite', 0)),
-                    f"{item.get('charge_pct', 0)}%",
-                    f"{item.get('pertes_effectives_unit', 0):.1f}",
-                    f"{item.get('total_w', 0):.1f}"
+                    f"{item.get('puissance', item.get('puissance_unitaire', 0)):.0f}",
+                    f"{item.get('total', 0):.0f}"
                 ])
-                total_disj += item.get('total_w', 0)
-            t_disj = Table(disj_data, colWidths=[5*cm, 2*cm, 2.5*cm, 3*cm, 3*cm])
+                total_tgbt += item.get('total', 0)
+            t_disj = Table(disj_data, colWidths=[6*cm, 2*cm, 3*cm, 3*cm])
             t_disj.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2B6CB0')),
                 ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -240,26 +217,25 @@ class PDFReportGenerator:
                 ('ALIGN', (1,0), (-1,-1), 'CENTER'),
             ]))
             story.append(t_disj)
-            story.append(Paragraph(f"<b>Total pertes disjoncteurs :</b> {total_disj:.1f} W ({total_disj/1000:.2f} kW)", normal_style))
+            story.append(Paragraph(f"<b>Total pertes TGBT :</b> {total_tgbt:.1f} W ({total_tgbt/1000:.2f} kW)", normal_style))
         else:
-            story.append(Paragraph("Aucun disjoncteur configuré.", normal_style))
-        story.append(Spacer(1, 0.8*cm))
+            story.append(Paragraph("Aucun composant TGBT configuré.", normal_style))
+        story.append(Spacer(1, 0.5*cm))
 
-        # ---- 5. Variateurs configurés ----
-        story.append(Paragraph("5. Variateurs configurés", h2_style))
-        if variateurs and len(variateurs) > 0:
-            vfd_data = [["Modèle", "Qté", "Charge (%)", "Pertes unit. (W)", "Total (W)"]]
+        # ---- 5. Variateurs (si présents et distincts) ----
+        if variateurs and len(variateurs) > 0 and variateurs != disjoncteurs:
+            story.append(Paragraph("5. Variateurs spécifiques", h2_style))
+            vfd_data = [["Composant", "Qté", "Puissance unit. (W)", "Total (W)"]]
             total_vfd = 0
             for item in variateurs:
                 vfd_data.append([
-                    item.get('modele', 'N/A'),
+                    item.get('nom', 'N/A'),
                     str(item.get('quantite', 0)),
-                    f"{item.get('charge_pct', 0)}%",
-                    f"{item.get('pertes_effectives_unit', 0):.1f}",
-                    f"{item.get('total_w', 0):.1f}"
+                    f"{item.get('puissance', item.get('puissance_unitaire', 0)):.0f}",
+                    f"{item.get('total', 0):.0f}"
                 ])
-                total_vfd += item.get('total_w', 0)
-            t_vfd = Table(vfd_data, colWidths=[5*cm, 2*cm, 2.5*cm, 3*cm, 3*cm])
+                total_vfd += item.get('total', 0)
+            t_vfd = Table(vfd_data, colWidths=[6*cm, 2*cm, 3*cm, 3*cm])
             t_vfd.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2B6CB0')),
                 ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -272,12 +248,44 @@ class PDFReportGenerator:
             ]))
             story.append(t_vfd)
             story.append(Paragraph(f"<b>Total pertes variateurs :</b> {total_vfd:.1f} W ({total_vfd/1000:.2f} kW)", normal_style))
-        else:
-            story.append(Paragraph("Aucun variateur configuré.", normal_style))
-        story.append(Spacer(1, 0.8*cm))
+            story.append(Spacer(1, 0.5*cm))
 
-        # ---- 6. Bilan Thermique Global ----
-        story.append(Paragraph("6. Bilan Thermique Global", h2_style))
+        # ---- 6. Armoires Auxiliaires (optionnelles) ----
+        if auxiliaires:
+            story.append(Paragraph("6. Armoires Auxiliaires", h2_style))
+            qty = auxiliaires.get('quantite', 0)
+            pertes_aux = auxiliaires.get('pertes_totales', 0)
+            story.append(Paragraph(
+                f"<b>Nombre d'armoires :</b> {qty} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                f"<b>Pertes totales :</b> {pertes_aux:.1f} W ({pertes_aux/1000:.2f} kW)",
+                normal_style
+            ))
+            components = auxiliaires.get('components', [])
+            if components:
+                aux_data = [["Composant", "Qté", "Puissance unit. (W)", "Total (W)"]]
+                for comp in components:
+                    aux_data.append([
+                        comp.get('nom', 'N/A'),
+                        str(comp.get('quantite', 0)),
+                        f"{comp.get('puissance_unitaire', 0):.0f}",
+                        f"{comp.get('total', 0):.0f}"
+                    ])
+                t_aux = Table(aux_data, colWidths=[6*cm, 2*cm, 3*cm, 3*cm])
+                t_aux.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2B6CB0')),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0,0), (-1,0), 9),
+                    ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+                    ('PADDING', (0,0), (-1,-1), 4),
+                    ('FONTSIZE', (0,1), (-1,-1), 8),
+                    ('ALIGN', (1,0), (-1,-1), 'CENTER'),
+                ]))
+                story.append(t_aux)
+            story.append(Spacer(1, 0.5*cm))
+
+        # ---- 7. Bilan Thermique Global ----
+        story.append(Paragraph("7. Bilan Thermique Global", h2_style))
         units = bilan.get("units", {})
         total_equip = bilan.get("total_equipements", 0)
         apports_bat = bilan.get("apports_batiment", 0)
@@ -285,7 +293,6 @@ class PDFReportGenerator:
         total_design = total_equip + apports_bat
         total_avec_marge = total_design * (1 + margin/100)
 
-        # Tableau bilan
         bilan_data = [
             ["Poste", "Valeur (W)", "Valeur (kW)"],
             ["Pertes équipements", f"{total_equip:.1f}", f"{total_equip/1000:.2f}"],
@@ -309,30 +316,30 @@ class PDFReportGenerator:
             ('PADDING', (0,0), (-1,-1), 5),
             ('FONTSIZE', (0,1), (-1,-1), 9),
             ('BACKGROUND', (0,4), (-1,4), colors.HexColor('#F1F5F9')),
-            ('BACKGROUND', (0,5), (-1,5), colors.HexColor('#E8F0FE')),  
+            ('BACKGROUND', (0,5), (-1,5), colors.HexColor('#E8F0FE')),
             ('TEXTCOLOR', (0,5), (-1,5), colors.HexColor('#1A3A6B')),
             ('BACKGROUND', (0,7), (-1,-1), colors.HexColor('#F8FAFC')),
         ]))
         story.append(t_bilan)
         story.append(Spacer(1, 0.8*cm))
 
-        # ---- 7. Résumé des capacités  ----
-        story.append(Paragraph("7. Résumé des Capacités", h2_style))
+        # ---- 8. Résumé des Capacités ----
+        story.append(Paragraph("8. Résumé des Capacités", h2_style))
         kw_val = units.get('kw', 0)
         btu_val = units.get('btu_h', 0)
         tr_val = units.get('tr', 0)
         summary_text = f"""
         <font size=12><b>Puissance frigorifique nécessaire :</b> 
-        <font color="#2B6CB0">{kw_val:.2f} kW</font>/
-        <font color="#2B6CB0">{btu_val:.0f} BTU/h</font>
-        (<font color="#2B6CB0">{tr_val:.2f} TR</font>)
+        <font color="#2B6CB0">{kw_val:.2f} kW</font> /
+        <font color="#2B6CB0">{btu_val:.0f} BTU/h</font> /
+        <font color="#2B6CB0">{tr_val:.2f} TR</font>
         </font>
         """
         story.append(Paragraph(summary_text, normal_style))
         story.append(Spacer(1, 0.5*cm))
 
-        # ---- 8. Références normatives ----
-        story.append(Paragraph("8. Références et Normes", h2_style))
+        # ---- 9. Références normatives ----
+        story.append(Paragraph("9. Références et Normes", h2_style))
         norm_text = """
         <b>Méthodologie ASHRAE CLTD/CLF</b> : calcul des apports de transmission, éclairage et ventilation.<br/>
         <b>IEC 61439</b> : pertes dans les tableaux de distribution (disjoncteurs, jeux de barres).<br/>
@@ -342,4 +349,5 @@ class PDFReportGenerator:
         story.append(Paragraph(norm_text, normal_style))
 
         # ---- Construction du PDF ----
+        doc.build(story)
         doc.build(story)
