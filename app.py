@@ -228,11 +228,8 @@ db_mgr = DatabaseManager()
 # ----------------------------------------------------
 # MENU DE NAVIGATION
 # ----------------------------------------------------
-menu = st.sidebar.radio(
-    "Navigation",
-    ["Projet", "Local", "TGBT", "Armoires A", "Armoires Aux", "Bilan Thermique", "Rapport"]
-)
-])
+
+menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
 
 # ----------------------------------------------------
 # Fonctions de calcul ajoutées 
