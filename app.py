@@ -187,39 +187,76 @@ if "local" not in st.session_state:
         "lighting_w_m2": 10.0, "ach": 1.5, "occupants": 1
     }
 
-# --- Configurations détaillées des équipements ---
+# --- Configuration des Armoires A ---
 if "config_armoires" not in st.session_state:
     st.session_state.config_armoires = {
         "nb": 1,
         "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
         "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
     }
-
 if "nb_armoires_a" not in st.session_state:
-    st.session_state.nb_armoires_a = 1
+    st.session_state.nb_armoires_a = 1  # Ancienne variable (plus utilisée par l'UI)
 
-if "config_disjoncteurs" not in st.session_state:
-    st.session_state.config_disjoncteurs = []
+# --- Configuration TGBT ---
+if "tgbt_components" not in st.session_state:
+    st.session_state.tgbt_components = []
+if "pertes_tgbt_w" not in st.session_state:
+    st.session_state.pertes_tgbt_w = 0.0
 
-if "config_variateurs" not in st.session_state:
-    st.session_state.config_variateurs = []
+# --- Configuration des Armoires A ---
+if "config_armoires" not in st.session_state:
+    st.session_state.config_armoires = {
+        "nb": 1,
+        "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
+        "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
+    }
+if "nb_armoires_a" not in st.session_state:
+    st.session_state.nb_armoires_a = 1  
 
-# --- Résultats des calculs ---
+if "armoire_a_quantite" not in st.session_state:
+    st.session_state.armoire_a_quantite = 1  
+
+# --- Configuration Armoire Auxiliaire ---
+if "armoires_aux_components" not in st.session_state:
+    st.session_state.armoires_aux_components = []
+if "armoires_aux_quantite" not in st.session_state:
+    st.session_state.armoires_aux_quantite = 1
+if "pertes_armoires_aux_w" not in st.session_state:
+    st.session_state.pertes_armoires_aux_w = 0.0
+
+# --- Résultats du Bilan Thermique ---
+if "bilan_results" not in st.session_state:
+    st.session_state.bilan_results = {
+        'q_equipements': 0.0,
+        'q_eclairage': 0.0,
+        'q_interne': 0.0,
+        'q_transmission': 0.0,
+        'q_ventilation': 0.0,
+        'q_enveloppe': 0.0,
+        'q_totale_brut': 0.0,
+        'q_totale_design': 0.0,
+        'puissance_kw': 0.0,
+        'puissance_btu': 0.0,
+        'puissance_tr': 0.0,
+        'debit_air': 0.0,
+        'marge_pourcent': 15,
+        'q_interne_display': 0.0,
+        'q_enveloppe_display': 0.0,
+        'pie_data': pd.DataFrame(),
+        'sens_data': pd.DataFrame()
+    }
+if "bilan_computed" not in st.session_state:
+    st.session_state.bilan_computed = False
+
+# --- Résultats de calcul (pour les autres pages) ---
 if "pertes_armoires_w" not in st.session_state:
     st.session_state.pertes_armoires_w = PERTES_ARMOIRE_A_UNITAIRE_W
-
-if "pertes_disjoncteurs_w" not in st.session_state:
-    st.session_state.pertes_disjoncteurs_w = 0.0
-
-if "pertes_variateurs_w" not in st.session_state:
-    st.session_state.pertes_variateurs_w = 0.0
 
 if "apports_batiment_w" not in st.session_state:
     st.session_state.apports_batiment_w = 0.0
 
 if "bilan" not in st.session_state:
     st.session_state.bilan = {}
-
 # ----------------------------------------------------
 # INITIALISATION DE LA BASE DE DONNÉES
 # ----------------------------------------------------
@@ -228,23 +265,8 @@ db_mgr = DatabaseManager()
 # ----------------------------------------------------
 # MENU DE NAVIGATION
 # ----------------------------------------------------
-menu = st.sidebar.radio("Navigation", [
-    "Bilan Thermique", "Projet", "Armoires A",
-    "Base Disjoncteurs", "Base Variateurs", "Local", "Rapport"
-])
 
-# ----------------------------------------------------
-# Fonctions de calcul ajoutées 
-# ----------------------------------------------------
-
-from disjoncteurs import BreakerCalculator
-from variateurs import VFDCalculator
-
-def compute_breaker_effective_loss(p_nom_w, charge_pct):
-    return BreakerCalculator.effective_loss(p_nom_w, charge_pct)
-
-def compute_vfd_effective_loss(p_nom_w, charge_pct):
-    return VFDCalculator.effective_loss(p_nom_w, charge_pct)
+menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
 
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
@@ -293,7 +315,7 @@ if menu == "Projet":
     st.markdown("---")
     st.subheader("📋 Aperçu du Rapport")
     st.markdown(f"""
-        <div style="background-color: #162032; border: 1px solid #1E293B; border-radius: 8px; padding: 20px;">
+        <div style="background-color: var(--background-color, #162032); border: 1px solid #1E293B; border-radius: 8px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #3182CE; padding-bottom: 10px; margin-bottom: 15px;">
                 <span style="font-weight: 700; font-size: 18px; color: #FFFFFF;">PROJET : {st.session_state.project.get('nom', 'N/A')}</span>
                 <span style="background-color: #3182CE; color: white; padding: 2px 10px; border-radius: 4px; font-weight: 600; font-size: 13px;">{st.session_state.project.get('statut', 'APS')}</span>
@@ -308,217 +330,256 @@ if menu == "Projet":
             </div>
         </div>
     """, unsafe_allow_html=True)
+    
+# ----------------------------------------------------
+# PAGE : TGBT
+# ----------------------------------------------------
+elif menu == "TGBT":
+    st.title("📊 Gestion du TGBT (Tableau Général Basse Tension)")
+    st.caption("Composez votre TGBT en ajoutant ses composants. Les dissipations thermiques seront automatiquement sommées pour le bilan thermique.")
+    st.markdown("---")
+
+    # Initialisation
+    if 'tgbt_components' not in st.session_state:
+        st.session_state.tgbt_components = []
+    if 'pertes_tgbt_w' not in st.session_state:
+        st.session_state.pertes_tgbt_w = 0.0
+
+    # Base de données des composants (avec les jeux de barres calibrés)
+    COMPOSANTS_TGBT = {
+        # Jeux de barres (Pertes par mètre, cuivre: loi de joule)
+        "Jeu de barres - 250A (~20 W/m)": 20,
+        "Jeu de barres - 400A (~40 W/m)": 40,
+        "Jeu de barres - 630A (~80 W/m)": 80,
+        "Jeu de barres - 1000A (~150 W/m)": 150,
+        "Jeu de barres - 1250A (~200 W/m)": 200,
+        "Jeu de barres - 1600A (~300 W/m)": 300,
+        "Jeu de barres - 2000A (~450 W/m)": 450,
+        "Jeu de barres - 2500A (~650 W/m)": 650,
+        "Jeu de barres - 3200A (~900 W/m)": 900,   
+        "Jeu de barres - 4000A (~1300 W/m)": 1300,
+        # Disjoncteurs (pertes: loi de joule)
+        "Disjoncteur de branchement (630A)": 220,
+        "Disjoncteur de branchement (400A)": 150,
+        "Disjoncteur général (250A)": 120,
+        "Disjoncteur divisionnaire (63A)": 25,
+        "Disjoncteur divisionnaire (32A)": 15,
+        "Disjoncteur divisionnaire (16A)": 10,
+        "Interrupteur-sectionneur (630A)": 100,
+        # Contacteurs / Variateurs
+        "Contacteur (puissance)": 50,
+        "Contacteur (auxiliaire)": 20,
+        # Autres
+        "Parafoudre (type 1+2)": 15,
+        "Transformateur de courant (TC)": 5,
+        "Compteur / Analyseur": 15,
+        "Bornier de raccordement (jeu)": 10,
+        "Ventilateur d'armoire (230V)": 30,
+        "Alimentation 24VDC": 25,
+        "Coffret vide (enveloppe)": 50
+    }
+
+    # --- Formulaire d'ajout ---
+    with st.form(key="add_tgbt_form", clear_on_submit=True):
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            composant_choisi = st.selectbox("Sélectionnez le composant", list(COMPOSANTS_TGBT.keys()))
+            puissance_unitaire = COMPOSANTS_TGBT[composant_choisi]
+            st.caption(f"⚡ Dissipation typique : **{puissance_unitaire} W** par unité")
+        with col2:
+            quantite = st.number_input("Quantité", min_value=1, step=1, value=1)
+        with col3:
+            total_ligne = puissance_unitaire * quantite
+            st.metric("Total pour ce composant", f"{total_ligne} W")
+        
+        submitted = st.form_submit_button("➕ Ajouter au TGBT", type="primary")
+        if submitted:
+            st.session_state.tgbt_components.append({
+                "nom": composant_choisi,
+                "puissance_unitaire": puissance_unitaire,
+                "quantite": quantite,
+                "total": total_ligne
+            })
+            st.success(f"✅ '{composant_choisi}' x{quantite} ajouté !")
+            st.rerun()
+
+    st.markdown("---")
+
+    # --- Affichage de la composition ---
+    if st.session_state.tgbt_components:
+        df = pd.DataFrame(st.session_state.tgbt_components)
+        df_display = df.rename(columns={
+            "nom": "Composant",
+            "puissance_unitaire": "Puissance unitaire (W)",
+            "quantite": "Qté",
+            "total": "Total (W)"
+        })
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        
+        total_general = df["total"].sum()
+        st.session_state.pertes_tgbt_w = total_general
+        st.metric("Puissance dissipée totale du TGBT", f"{total_general:.0f} W", delta=f"{total_general/1000:.2f} kW")
+        
+        if st.button("🗑️ Réinitialiser la composition", type="secondary"):
+            st.session_state.tgbt_components = []
+            st.session_state.pertes_tgbt_w = 0.0
+            st.rerun()
+    else:
+        st.info("Aucun composant ajouté! Utilisez le formulaire pour composer votre TGBT.")
+        st.session_state.pertes_tgbt_w = 0.0
 
 # ----------------------------------------------------
 # PAGE : Armoires A
 # ----------------------------------------------------
-elif menu == "Armoires A":
-    st.title("Configuration des Armoires A")
-    st.caption("Définissez le nombre d'armoires A et consultez leur détail unifilaire.")
+elif menu == "Armoire A":
+    st.title("Gestion des Armoires A")
+    st.caption("La composition interne des Armoires A est fixe (selon plan type). Indiquez simplement le nombre d'armoires identiques installées.")
     st.markdown("---")
 
-    # Récupérer les valeurs actuelles
-    nb_actuel = st.session_state.config_armoires.get("nb", 1)
-    pertes_unitaire = PERTES_ARMOIRE_A_UNITAIRE_W
+    # Composition FIXE d'UNE Armoire A (basée sur le plan SIDENOR)
+    # Format: (Désignation, Puissance unitaire en W, Quantité dans 1 armoire)
+    COMPOSANTS_ARMOIRE_A = [
+        ("Disjoncteur général 400A", 150, 1),
+        ("Disjoncteur 250A (départs)", 120, 2),
+        ("Disjoncteur 100A (départs)", 40, 4),
+        ("Départ moteur 11kW (protection + contacteur)", 25, 6),
+        ("Départ moteur 9kW (protection + contacteur)", 20, 4),
+        ("Départ moteur 1.2kW (protection + contacteur)", 10, 8),
+        ("Variateurs 45kW", 450, 1),   # ~10W/kW
+        ("Variateurs 18.5kW", 185, 4), # ~10W/kW
+        ("Jeu de barres 400A (2m)", 80, 1),  # 40W/m * 2m
+        ("Ventilation / Accessoires", 50, 1)
+    ]
 
-    st.subheader("Nombre d'Armoires A")
-    nb = st.number_input("Nombre d'armoires A", min_value=0, max_value=20, value=nb_actuel, step=1)
-    st.session_state.nb_armoires_a = nb   # pour compatibilité
-    pertes_totales = nb * pertes_unitaire
-
-    # Mise à jour du dictionnaire config_armoires
-    st.session_state.config_armoires["nb"] = nb
-    st.session_state.config_armoires["pertes_unitaire"] = pertes_unitaire
-    st.session_state.config_armoires["pertes_totales"] = pertes_totales
-    st.session_state.pertes_armoires_w = pertes_totales   # pour le bilan
-
-    col1, col2 = st.columns(2)
-    col1.metric("Pertes unitaires", f"{pertes_unitaire:.1f} W", f"{pertes_unitaire/1000:.2f} kW")
-    col2.metric("Pertes totales", f"{pertes_totales:.1f} W", f"{pertes_totales/1000:.2f} kW", delta_color="inverse")
+    # Calcul des pertes pour UNE armoire
+    pertes_unitaire = 0.0
+    st.subheader("📋 Composition type d'une Armoire A")
+    
+    data_rows = []
+    for nom, pu, qte in COMPOSANTS_ARMOIRE_A:
+        total_ligne = pu * qte
+        pertes_unitaire += total_ligne
+        data_rows.append({"Composant": nom, "Puissance unitaire (W)": pu, "Qté": qte, "Total (W)": total_ligne})
+    
+    df_unitaire = pd.DataFrame(data_rows)
+    st.dataframe(df_unitaire, use_container_width=True, hide_index=True)
+    st.metric("Pertes pour 1 Armoire A", f"{pertes_unitaire:.0f} W", delta=f"{pertes_unitaire/1000:.2f} kW")
 
     st.markdown("---")
-    st.subheader("📋 Détail unifilaire d'une Armoire A standard")
-    st.table(pd.DataFrame(ARMOIRE_A_DEPARTS_STANDARDS))
 
+    # --- Sélection de la quantité ---
+    st.subheader("Nombre d'armoires identiques")
+    quantite = st.number_input("Nombre d'Armoires A identiques", min_value=0, max_value=20, step=1, value=1)
+    
+    if st.button("💾 Enregistrer la quantité", type="primary"):
+        st.session_state.armoire_a_quantite = quantite
+        st.session_state.pertes_armoires_w = pertes_unitaire * quantite
+        st.success(f"✅ {quantite} armoire(s) A enregistrée(s). Puissance totale : {st.session_state.pertes_armoires_w:.0f} W")
+
+    st.markdown("---")
+
+    # --- Affichage du total enregistré ---
+    if 'armoire_a_quantite' in st.session_state and st.session_state.armoire_a_quantite > 0:
+        st.subheader("Récapitulatif")
+        st.metric("Nombre d'armoires", st.session_state.armoire_a_quantite)
+        st.metric("Puissance dissipée totale (Armoires A)", f"{st.session_state.pertes_armoires_w:.0f} W", 
+                  delta=f"{st.session_state.pertes_armoires_w/1000:.2f} kW")
+    else:
+        st.info("Aucune armoire A enregistrée pour le moment. Définissez le nombre ci-dessus.")
+        st.session_state.pertes_armoires_w = 0.0
+        
 # ----------------------------------------------------
-# PAGE : Base Disjoncteurs (bibliothèque + configuration projet)
+# PAGE : Armoire Auxiliaire
 # ----------------------------------------------------
-elif menu == "Base Disjoncteurs":
-    st.title(" Configuration des Disjoncteurs")
+elif menu == "Armoire Auxiliaire":
+    st.title("Gestion des Armoires Auxiliaires")
+    st.caption("Définissez la composition d'une armoire auxiliaire type, puis indiquez le nombre d'exemplaires identiques.")
     st.markdown("---")
 
-    # Initialisation de la liste de configuration si absente
-    if "disjoncteurs_config" not in st.session_state:
-        st.session_state.disjoncteurs_config = []  # liste de dict
+    # Initialisation
+    if 'armoires_aux_components' not in st.session_state:
+        st.session_state.armoires_aux_components = []
+    if 'armoires_aux_quantite' not in st.session_state:
+        st.session_state.armoires_aux_quantite = 1
+    if 'pertes_armoires_aux_w' not in st.session_state:
+        st.session_state.pertes_armoires_aux_w = 0.0
 
-    # --- Formulaire d'ajout ---
-    st.subheader("Ajouter un disjoncteur")
-    with st.form("add_breaker_form"):
-        col1, col2, col3, col4 = st.columns(4)
+    # --- 1. Sélection de la quantité (multiplicateur) ---
+    col_qty, _ = st.columns([1, 2])
+    with col_qty:
+        quantite = st.number_input("Nombre d'armoires auxiliaires identiques", min_value=1, step=1, value=st.session_state.armoires_aux_quantite)
+        st.session_state.armoires_aux_quantite = quantite
+
+    st.markdown("---")
+
+    # --- 2. Composition libre ---
+    COMPOSANTS_AUX = {
+        "Disjoncteur général (160A)": 80,
+        "Disjoncteur divisionnaire (63A)": 25,
+        "Disjoncteur divisionnaire (32A)": 15,
+        "Disjoncteur divisionnaire (16A)": 10,
+        "Interrupteur-sectionneur (160A)": 60,
+        "Contacteur (puissance)": 50,
+        "Jeu de barres - 160A (~10 W/m)": 10,
+        "Bornier de raccordement (jeu)": 10,
+        "Ventilateur d'armoire (230V)": 30,
+        "Alimentation 24VDC": 25,
+        "Coffret vide (enveloppe)": 50
+    }
+
+    with st.form(key="add_aux_form", clear_on_submit=True):
+        col1, col2, col3 = st.columns([2, 1, 1])
         with col1:
-            designation = st.text_input("Désignation / Modèle", value="Disjoncteur", key="new_desig")
+            composant_choisi = st.selectbox("Sélectionnez un composant", list(COMPOSANTS_AUX))
+            puissance_unitaire = COMPOSANTS_AUX[composant_choisi]
+            st.caption(f"⚡ Dissipation : **{puissance_unitaire} W**")
         with col2:
-            qty = st.number_input("Quantité", min_value=0, max_value=100, value=1, step=1, key="new_qty")
+            qte_composant = st.number_input("Qté", min_value=1, step=1, value=1)
         with col3:
-            p_nom = st.number_input("Pertes nominales (W) à 100%", min_value=0.0, value=15.0, step=1.0, key="new_pnom")
-        with col4:
-            charge = st.slider("Taux de charge (%)", 10, 100, 80, key="new_charge")
-
-        # Bouton Ajouter (à l'intérieur du formulaire)
-        add_clicked = st.form_submit_button("➕ Ajouter")
-
-    if add_clicked:
-        if designation.strip():
-            # Calcul des pertes effectives
-            pertes_eff = p_nom * (charge / 100.0) ** 2
-            total_ligne = qty * pertes_eff
-
-            # Ajouter à la liste
-            st.session_state.disjoncteurs_config.append({
-                "nom": designation,
-                "quantite": qty,
-                "p_nom": p_nom,
-                "charge": charge,
-                "pertes_eff": pertes_eff,
+            total_ligne = puissance_unitaire * qte_composant
+            st.metric("Total", f"{total_ligne} W")
+        
+        submitted = st.form_submit_button("➕ Ajouter ce composant", type="primary")
+        if submitted:
+            st.session_state.armoires_aux_components.append({
+                "nom": composant_choisi,
+                "puissance_unitaire": puissance_unitaire,
+                "quantite": qte_composant,
                 "total": total_ligne
             })
-            st.success(f"Ligne ajoutée : {designation}")
-            st.rerun()
-        else:
-            st.warning("⚠️ Veuillez saisir une désignation.")
-
-    st.markdown("---")
-
-    # --- Affichage du tableau des lignes configurées ---
-    st.markdown("---")
-    st.subheader("📋 Disjoncteurs configurés")
-    if st.session_state.disjoncteurs_config:
-
-        # Construire un DataFrame pour l'affichage
-        df = pd.DataFrame(st.session_state.disjoncteurs_config)
-
-       # Afficher le tableau avec un bouton de suppression par ligne
-        for idx, row in enumerate(df.to_dict(orient="records")):
-            cols = st.columns([3, 1, 1, 1, 1, 1, 1, 1])
-            cols[0].write(row["nom"])
-            cols[1].write(row["quantite"])
-            cols[2].write(f"{row['p_nom']:.1f} W")
-            cols[3].write(f"{row['charge']}%")
-            cols[4].write(f"{row['pertes_eff']:.1f} W")
-            cols[5].write(f"{row['total']:.1f} W")
-            if cols[6].button("X", key=f"del_disjoncteur_{idx}"):
-                del st.session_state.disjoncteurs_config[idx]
-                st.rerun()
-
-        # Calcul du total
-        total_global = sum(item["total"] for item in st.session_state.disjoncteurs_config)
-        st.metric("Total pertes disjoncteurs (projet)", f"{total_global:.1f} W", f"{total_global/1000:.2f} kW", delta_color="inverse")
-
-
-        # Bouton pour tout effacer
-        if st.button("🗑️ Effacer toute la configuration"):
-            st.session_state.disjoncteurs_config = []
+            st.success(f"Ajouté !")
             st.rerun()
 
-        # --- Bouton Enregistrer la configuration ---
-        if st.button("💾 Enregistrer la configuration pour le bilan thermique"):
-            # Mettre à jour les clés utilisées par le bilan et le rapport
-            st.session_state.pertes_disjoncteurs_w = total_global
-            st.session_state.config_disjoncteurs = st.session_state.disjoncteurs_config
-            st.success("Configuration enregistrée ! Le bilan thermique est mis à jour.")
-            
-    else:
-        st.info("Aucun Disjoncteur configuré pour le moment. Ajoutez-en via le formulaire ci‑dessus.")
-# ----------------------------------------------------
-# PAGE : Base Variateurs (bibliothèque + configuration projet)
-# ----------------------------------------------------
-elif menu == "Base Variateurs":
-    st.title("Configuration des Variateurs")
     st.markdown("---")
 
-    # Initialiser la liste de configuration si absente
-    if "variateurs_config" not in st.session_state:
-        st.session_state.variateurs_config = []
-
-    # --- Formulaire d'ajout ---
-    with st.form("add_vfd_form", clear_on_submit=False):
-        st.subheader("Ajouter un variateur")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            nom = st.text_input("Désignation / Modèle", value="Variateur 1", key="vfd_nom")
-        with col2:
-            qty = st.number_input("Quantité", min_value=1, max_value=100, value=1, step=1, key="vfd_qty")
-        with col3:
-            p_nom = st.number_input("Pertes nominales (W) à 100%", min_value=0.0, value=50.0, step=1.0, key="vfd_pnom")
-        with col4:
-            charge = st.slider("Taux de charge (%)", 10, 100, 80, key="vfd_charge")
-
-        # Deux boutons dans le formulaire
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            add_btn = st.form_submit_button("➕ Ajouter")
-        with col_btn2:
-            reset_btn = st.form_submit_button("🔄 Réinitialiser le formulaire")
-
-    # Traitement du bouton "Ajouter"
-    if add_btn and nom.strip():
-        # Calcul des pertes effectives avec la bonne formule (exposant 1.5 pour les variateurs)
-        pertes_eff = p_nom * (charge / 100.0) ** 1.5
-        total_ligne = qty * pertes_eff
-
-        # Ajouter à la liste
-        st.session_state.variateurs_config.append({
-            "nom": nom,
-            "quantite": qty,
-            "p_nom": p_nom,
-            "charge": charge,
-            "pertes_eff": pertes_eff,
-            "total": total_ligne
+    # --- 3. Affichage de la composition de l'armoire type ---
+    if st.session_state.armoires_aux_components:
+        df = pd.DataFrame(st.session_state.armoires_aux_components)
+        df_display = df.rename(columns={
+            "nom": "Composant",
+            "puissance_unitaire": "Puissance unitaire (W)",
+            "quantite": "Qté",
+            "total": "Total (W)"
         })
-        st.rerun()
+        st.subheader("Composition de l'armoire type")
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
 
-    # --- Affichage du tableau des lignes ajoutées ---
-    st.markdown("---")
-    st.subheader("📋 Variateurs configurés")
+        total_type = df["total"].sum()
+        # Calcul du total multiplié par la quantité
+        total_general = total_type * st.session_state.armoires_aux_quantite
+        st.session_state.pertes_armoires_aux_w = total_general
 
-    if st.session_state.variateurs_config:
-        # Créer un DataFrame pour l'affichage
-        df_vfd = pd.DataFrame(st.session_state.variateurs_config)
+        st.metric("Puissance pour 1 armoire type", f"{total_type:.0f} W")
+        st.metric("Puissance totale (x{})".format(st.session_state.armoires_aux_quantite), 
+                  f"{total_general:.0f} W", delta=f"{total_general/1000:.2f} kW")
 
-        # Ajouter une colonne pour le bouton de suppression
-        df_vfd["Supprimer"] = ""
-
-        # Afficher le tableau avec un bouton de suppression par ligne
-        for idx, row in enumerate(df_vfd.to_dict(orient="records")):
-            cols = st.columns([3, 1, 1, 1, 1, 1, 1, 1])
-            cols[0].write(row["nom"])
-            cols[1].write(row["quantite"])
-            cols[2].write(f"{row['p_nom']:.1f} W")
-            cols[3].write(f"{row['charge']}%")
-            cols[4].write(f"{row['pertes_eff']:.1f} W")
-            cols[5].write(f"{row['total']:.1f} W")
-            if cols[6].button("X", key=f"del_vfd_{idx}"):
-                del st.session_state.variateurs_config[idx]
-                st.rerun()
-
-        # Calcul et affichage du total
-        total_global = sum(item["total"] for item in st.session_state.variateurs_config)
-        st.metric("Total pertes variateurs", f"{total_global:.1f} W", f"{total_global/1000:.2f} kW", delta_color="inverse")
-
-        # Bouton pour tout effacer
-        if st.button("🗑️ Effacer toute la configuration"):
-            st.session_state.variateurs_config = []
+        if st.button("🗑️ Réinitialiser la composition type", type="secondary"):
+            st.session_state.armoires_aux_components = []
+            st.session_state.pertes_armoires_aux_w = 0.0
             st.rerun()
-
-        # Bouton Enregistrer pour valider la configuration
-        if st.button("💾 Enregistrer pour le bilan thermique"):
-            st.session_state.pertes_variateurs_w = total_global
-            st.session_state.config_variateurs = st.session_state.variateurs_config.copy()
-            st.success(f"Configuration enregistrée ! Total des pertes variateurs : {total_global:.1f} W")
-            # On ne fait pas de rerun pour garder l'affichage
-
     else:
-        st.info("Aucun variateur configuré. Ajoutez-en via le formulaire ci‑dessus.")
+        st.info("Aucun composant pour l'armoire auxiliaire! Utilisez le formulaire ci-dessus.")
+        st.session_state.pertes_armoires_aux_w = 0.0
 
 # ----------------------------------------------------
 # PAGE : Local (bâtiment)
@@ -606,11 +667,41 @@ elif menu == "Bilan Thermique":
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
     st.markdown("---")
 
-    # --- 1. Récupération des données depuis les autres pages ---
+    # ------------------------------------------------------------
+    # 1. INITIALIZE SESSION STATE FOR RESULTS (default = 0 / empty)
+    # ------------------------------------------------------------
+    if 'bilan_results' not in st.session_state:
+        st.session_state.bilan_results = {
+            'q_equipements': 0.0,
+            'q_eclairage': 0.0,
+            'q_interne': 0.0,
+            'q_transmission': 0.0,
+            'q_ventilation': 0.0,
+            'q_enveloppe': 0.0,
+            'q_totale_brut': 0.0,
+            'q_totale_design': 0.0,
+            'puissance_kw': 0.0,
+            'puissance_btu': 0.0,
+            'puissance_tr': 0.0,
+            'debit_air': 0.0,
+            'marge_pourcent': 15,
+            'q_interne_display': 0.0,
+            'q_enveloppe_display': 0.0,
+            # for pie chart
+            'pie_data': pd.DataFrame(),
+            # for sensitivity line
+            'sens_data': pd.DataFrame()
+        }
+        st.session_state.bilan_computed = False
+
+    # ------------------------------------------------------------
+    # 2. READ INPUTS FROM SESSION STATE 
+    # ------------------------------------------------------------
     # Pertes des équipements
-    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
-    pertes_disj = st.session_state.get("pertes_disjoncteurs_w", 0.0)
-    pertes_vfd = st.session_state.get("pertes_variateurs_w", 0.0)
+  
+    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0) 
+    pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
+    pertes_armoires_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
 
     # Données du local
     local_data = st.session_state.get("local", {})
@@ -621,257 +712,384 @@ elif menu == "Bilan Thermique":
     roof_type = local_data.get("roof_type", "Toiture sandwich isolée")
     lighting_w_m2 = local_data.get("lighting_w_m2", 0.0)
     ach = local_data.get("ach", 0.0)
-    
+
     # Données du projet (températures)
     project_data = st.session_state.get("project", {})
     t_ext = project_data.get("t_ext", 35.0)
     t_int = project_data.get("t_int", 22.0)
     delta_t = max(0.0, t_ext - t_int)
 
-    # --- 2. Calculs Scientifiques ---
-    # 2.1 Apports Internes (Q_interne)
-    q_equipements = pertes_armoires + pertes_disj + pertes_vfd
-    surface = length * width
-    q_eclairage = lighting_w_m2 * surface
-    q_interne = q_equipements + q_eclairage  # plus q_occupants
+    # ------------------------------------------------------------
+    # 3. BUTTON TO TRIGGER CALCULATION
+    # ------------------------------------------------------------
+    if st.button("🔄 Calculer le Bilan Thermique", type="primary"):
+        # ---- Run all calculations ----
+        # 3.1 Apports Internes
+        q_equipements = pertes_armoires + pertes_tgbt + pertes_armoires_aux
+        surface = length * width
+        q_eclairage = lighting_w_m2 * surface
+        q_interne = q_equipements + q_eclairage
 
-    # 2.2 Apports par l'Enveloppe (Q_enveloppe)
-    from local import BuildingThermalCalculator
-    u_wall = BuildingThermalCalculator.U_VALUES.get(wall_type, 0.5)
-    u_roof = BuildingThermalCalculator.U_VALUES.get(roof_type, 0.35)
+        # 3.2 Apports par l'Enveloppe
+        from local import BuildingThermalCalculator
+        u_wall = BuildingThermalCalculator.U_VALUES.get(wall_type, 0.5)
+        u_roof = BuildingThermalCalculator.U_VALUES.get(roof_type, 0.35)
 
-    surface_murs = 2 * (length + width) * height
-    surface_toit = surface
-    q_murs = u_wall * surface_murs * delta_t
-    q_toit = u_roof * surface_toit * delta_t
-    q_transmission = q_murs + q_toit
+        surface_murs = 2 * (length + width) * height
+        surface_toit = surface
+        q_murs = u_wall * surface_murs * delta_t
+        q_toit = u_roof * surface_toit * delta_t
+        q_transmission = q_murs + q_toit
 
-    volume = surface * height
-    debit_air = volume * ach
-    q_ventilation = 0.34 * debit_air * delta_t
-    q_enveloppe = q_transmission + q_ventilation
+        volume = surface * height
+        debit_air = volume * ach
+        q_ventilation = 0.34 * debit_air * delta_t
+        q_enveloppe = q_transmission + q_ventilation
 
-    # 2.3 Calcul du Besoin de Refroidissement
-    q_totale_brut = q_interne + q_enveloppe
-    marge_pourcent = 15
-    facteur_marge = 1 + (marge_pourcent / 100.0)
-    q_totale_design = q_totale_brut * facteur_marge
+        # 3.3 Besoin de refroidissement
+        q_totale_brut = q_interne + q_enveloppe
+        marge_pourcent = 15
+        facteur_marge = 1 + (marge_pourcent / 100.0)
+        q_totale_design = q_totale_brut * facteur_marge
 
-    # --- 3. Stockage des résultats pour le Rapport ---
-    st.session_state.bilan = {
-        "total_equipements": q_equipements,
-        "apports_batiment": q_enveloppe,
-        "margin_pct": marge_pourcent,
-        "units": {
-            "kw": round(q_totale_design / 1000, 2),
-            "btu_h": round(q_totale_design * 3.412142, 2),
-            "tr": round(q_totale_design / 3516.85, 2)
-        }
-    }
+        # 3.4 Unités
+        puissance_kw = q_totale_design / 1000
+        puissance_btu = q_totale_design * 3.412142
+        puissance_tr = q_totale_design / 3516.85
+        debit_air_estime = q_totale_design / (0.34 * delta_t) if delta_t > 0 else 0.0
 
-    # --- 4. Affichage des Résultats ---
-    st.subheader("Synthèse du Bilan de Puissance")
+        # ---- Store results in session_state ----
+        st.session_state.bilan_results.update({
+            'q_equipements': q_equipements,
+            'q_eclairage': q_eclairage,
+            'q_interne': q_interne,
+            'q_transmission': q_transmission,
+            'q_ventilation': q_ventilation,
+            'q_enveloppe': q_enveloppe,
+            'q_totale_brut': q_totale_brut,
+            'q_totale_design': q_totale_design,
+            'puissance_kw': puissance_kw,
+            'puissance_btu': puissance_btu,
+            'puissance_tr': puissance_tr,
+            'debit_air': debit_air_estime,
+            'marge_pourcent': marge_pourcent,
+            'q_interne_display': q_interne,
+            'q_enveloppe_display': q_enveloppe,
+        })
 
-    puissance_kw = q_totale_design / 1000
-    puissance_btu = q_totale_design * 3.412142
-    puissance_tr = q_totale_design / 3516.85
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric(
-        label="Puissance Frigorifique Nécessaire",
-        value=f"{puissance_btu:.0f} BTU/h",
-        delta=f"{puissance_kw:.2f} kW"
-    )
-    col2.metric(
-        label="Capacité Recommandée",
-        value=f"{puissance_tr:.2f} TR",
-        delta=f"{marge_pourcent}% de marge"
-    )
-    col3.metric(
-        label="Équivalent en kW",
-        value=f"{puissance_kw:.2f} kW"
-    )
-    col4.metric(
-        label="Débit d'Air Estimé",
-        value=f"{q_totale_design / (0.34 * delta_t):.0f} m³/h" if delta_t > 0 else "N/A",
-        help="Basé sur un écart de température de 10°C à la soufflante"
-    )
-
-    st.markdown("---")
-
-    # --- 5. Détail des Calculs ---
-    st.subheader("Détail des Apports Thermiques")
-
-    col_left, col_right = st.columns([1, 1.5])
-    with col_left:
-        st.caption("**Apports Internes (Équipements, éclairage)**")
-        st.write(f"- 🖥️ Équipements électriques : **{q_equipements:.0f} W**")
-        st.write(f"- 💡 Éclairage : **{q_eclairage:.0f} W**")
-        st.write(f"**Total Interne : {q_interne:.0f} W**")
-
-        st.caption("**Apports par l'Enveloppe (Bâtiment)**")
-        st.write(f"- 🧱 Murs & Toit : **{q_transmission:.0f} W**")
-        st.write(f"- 🌬️ Renouvellement d'air : **{q_ventilation:.0f} W**")
-        st.write(f"**Total Enveloppe : {q_enveloppe:.0f} W**")
-
-        st.divider()
-        st.metric("**Charge Thermique Totale (Brute)**", f"{q_totale_brut/1000:.2f} kW")
-        st.metric(f"**Charge avec marge ({marge_pourcent}%)**", f"{q_totale_design/1000:.2f} kW")
-
-    with col_right:
-        # Graphique 1 : Origine des apports (Camembert) - sans occupants
+        # ---- Pie chart data ----
         df_pie = pd.DataFrame({
             "Source": ["Équipements", "Enveloppe", "Éclairage"],
             "Watts": [q_equipements, q_enveloppe, q_eclairage]
         })
         df_pie = df_pie[df_pie["Watts"] > 0]
+        st.session_state.bilan_results['pie_data'] = df_pie
 
-        if not df_pie.empty:
-            fig_pie = px.pie(
-                df_pie,
-                values="Watts",
-                names="Source",
-                title="Répartition des Apports Thermiques",
-                hole=0.4,
-                color_discrete_sequence=px.colors.sequential.Blues_r
-            )
-            fig_pie.update_layout(margin=dict(t=40, b=20, l=10, r=10))
-            st.plotly_chart(fig_pie, use_container_width=True)
+        # ---- Sensitivity data ----
+        plage_temp = list(range(25, 51, 5))
+        puissances = []
+        for t in plage_temp:
+            delta_t_sim = max(0.0, t - t_int)
+            q_murs_sim = u_wall * surface_murs * delta_t_sim
+            q_toit_sim = u_roof * surface_toit * delta_t_sim
+            q_transmission_sim = q_murs_sim + q_toit_sim
+            q_ventilation_sim = 0.34 * debit_air * delta_t_sim
+            q_enveloppe_sim = q_transmission_sim + q_ventilation_sim
+            q_totale_sim = (q_interne + q_enveloppe_sim) * facteur_marge
+            puissances.append(q_totale_sim / 1000)
+        df_sens = pd.DataFrame({"Température Extérieure (°C)": plage_temp, "Puissance AC (kW)": puissances})
+        st.session_state.bilan_results['sens_data'] = df_sens
+
+        st.session_state.bilan_computed = True
+
+    # ------------------------------------------------------------
+    # 4. DISPLAY RESULTS (ZERO BY DEFAULT)
+    # ------------------------------------------------------------
+    results = st.session_state.bilan_results
+    computed = st.session_state.bilan_computed
+
+    # ---- Display metrics ----
+    st.subheader("Synthèse du Bilan de Puissance")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric(
+        label="Puissance Frigorifique Nécessaire",
+        value=f"{results['puissance_btu']:.0f} BTU/h" if computed else "0 BTU/h",
+        delta=f"{results['puissance_kw']:.2f} kW" if computed else "0.00 kW"
+    )
+    col2.metric(
+        label="Capacité Recommandée",
+        value=f"{results['puissance_tr']:.2f} TR" if computed else "0.00 TR",
+        delta=f"{results['marge_pourcent']}% de marge" if computed else "0% de marge"
+    )
+    col3.metric(
+        label="Équivalent en kW",
+        value=f"{results['puissance_kw']:.2f} kW" if computed else "0.00 kW"
+    )
+    col4.metric(
+        label="Débit d'Air Estimé",
+        value=f"{results['debit_air']:.0f} m³/h" if computed and results['debit_air'] > 0 else "N/A",
+        help="Basé sur un écart de température de 10°C à la soufflante"
+    )
 
     st.markdown("---")
 
-    # --- 6. Graphique de Sensibilité ---
+    # ---- Detail of thermal loads ----
+    st.subheader("Détail des Apports Thermiques")
+    col_left, col_right = st.columns([1, 1.5])
+
+    with col_left:
+        st.caption("**Apports Internes (Équipements, éclairage)**")
+        if computed:
+            st.write(f"- 🖥️ Équipements électriques : **{results['q_equipements']:.0f} W**")
+            st.write(f"- 💡 Éclairage : **{results['q_eclairage']:.0f} W**")
+            st.write(f"**Total Interne : {results['q_interne']:.0f} W**")
+        else:
+            st.write("- 🖥️ Équipements électriques : **0 W**")
+            st.write("- 💡 Éclairage : **0 W**")
+            st.write("**Total Interne : 0 W**")
+
+        st.caption("**Apports par l'Enveloppe (Bâtiment)**")
+        if computed:
+            st.write(f"- 🧱 Murs & Toit : **{results['q_transmission']:.0f} W**")
+            st.write(f"- 🌬️ Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
+            st.write(f"**Total Enveloppe : {results['q_enveloppe']:.0f} W**")
+        else:
+            st.write("- 🧱 Murs & Toit : **0 W**")
+            st.write("- 🌬️ Renouvellement d'air : **0 W**")
+            st.write("**Total Enveloppe : 0 W**")
+
+        st.divider()
+        if computed:
+            st.metric("**Charge Thermique Totale (Brute)**", f"{results['q_totale_brut']/1000:.2f} kW")
+            st.metric(f"**Charge avec marge ({results['marge_pourcent']}%)**", f"{results['q_totale_design']/1000:.2f} kW")
+        else:
+            st.metric("**Charge Thermique Totale (Brute)**", "0.00 kW")
+            st.metric("**Charge avec marge (15%)**", "0.00 kW")
+
+    with col_right:
+        if computed:
+            df_pie = results['pie_data']
+            if not df_pie.empty:
+                fig_pie = px.pie(
+                    df_pie,
+                    values="Watts",
+                    names="Source",
+                    title="Répartition des Apports Thermiques",
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.sequential.Blues_r
+                )
+                fig_pie.update_layout(margin=dict(t=40, b=20, l=10, r=10))
+                st.plotly_chart(fig_pie, use_container_width=True)
+            else:
+                st.info("Aucun apport positif à afficher.")
+        else:
+            st.info("Cliquez sur 'Calculer le Bilan Thermique' pour voir les graphiques.")
+
+    st.markdown("---")
+
+    # ---- Sensitivity graph ----
     st.subheader("Sensibilité à la Température Extérieure")
     st.caption("Comment la puissance nécessaire du climatiseur évolue avec la chaleur extérieure.")
 
-    plage_temp = list(range(25, 51, 5))
-    puissances = []
-    for t in plage_temp:
-        delta_t_sim = max(0.0, t - t_int)
-        q_murs_sim = u_wall * surface_murs * delta_t_sim
-        q_toit_sim = u_roof * surface_toit * delta_t_sim
-        q_transmission_sim = q_murs_sim + q_toit_sim
-        q_ventilation_sim = 0.34 * debit_air * delta_t_sim
-        q_enveloppe_sim = q_transmission_sim + q_ventilation_sim
-        q_totale_sim = (q_interne + q_enveloppe_sim) * facteur_marge
-        puissances.append(q_totale_sim / 1000)
-
-    df_sens = pd.DataFrame({"Température Extérieure (°C)": plage_temp, "Puissance AC (kW)": puissances})
-    fig_line = px.line(
-        df_sens,
-        x="Température Extérieure (°C)",
-        y="Puissance AC (kW)",
-        markers=True,
-        title="Puissance nécessaire en fonction de la chaleur extérieure"
-    )
-    fig_line.update_traces(line_color='#3182CE', line_width=3, marker_size=10)
-    fig_line.update_layout(
-        xaxis=dict(gridcolor='#E2E8F0'),
-        yaxis=dict(gridcolor='#E2E8F0')
-    )
-    st.plotly_chart(fig_line, use_container_width=True)
+    if computed and not results['sens_data'].empty:
+        df_sens = results['sens_data']
+        fig_line = px.line(
+            df_sens,
+            x="Température Extérieure (°C)",
+            y="Puissance AC (kW)",
+            markers=True,
+            title="Puissance nécessaire en fonction de la chaleur extérieure"
+        )
+        fig_line.update_traces(line_color='#3182CE', line_width=3, marker_size=10)
+        fig_line.update_layout(
+            xaxis=dict(gridcolor='#E2E8F0'),
+            yaxis=dict(gridcolor='#E2E8F0')
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
+    else:
+        st.info("Calculez le bilan pour visualiser la courbe de sensibilité.")
 
 # ----------------------------------------------------
 # PAGE : Rapport PDF
 # ----------------------------------------------------
-
 elif menu == "Rapport":
     st.title("📄 Génération du Rapport")
     st.caption("Téléchargez le bilan complet au format PDF.")
 
-    # Vérifier que le bilan est disponible
-    if not st.session_state.get("bilan") or "total_equipements" not in st.session_state.bilan:
+    # ------------------------------------------------------------
+    # 1. Vérifier que le bilan thermique a été calculé
+    # ------------------------------------------------------------
+    bilan_disponible = (
+        "bilan" in st.session_state 
+        and st.session_state.bilan 
+        and "total_equipements" in st.session_state.bilan
+    )
+
+    if not bilan_disponible:
         st.warning("⚠️ Le bilan thermique n'a pas encore été calculé.")
-        st.info("Veuillez d'abord consulter la page **Bilan Thermique** pour calculer le bilan.")
-        
-        if st.button("Calculer le bilan maintenant"):
+        st.info("Veuillez d'abord consulter la page **Bilan Thermique** et cliquer sur 'Calculer le Bilan Thermique'.")
+
+        # Bouton de calcul rapide (utilise les nouvelles variables)
+        if st.button("🔄 Calculer le bilan maintenant", type="primary"):
             pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
-            pertes_disj = st.session_state.get("pertes_disjoncteurs_w", 0.0)
-            pertes_vfd = st.session_state.get("pertes_variateurs_w", 0.0)
+            pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
+            pertes_armoires_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
             apports_bat = st.session_state.get("apports_batiment_w", 0.0)
-            
-            if pertes_armoires == 0 and pertes_disj == 0 and pertes_vfd == 0 and apports_bat == 0:
-                st.error("Aucune donnée disponible. Veuillez configurer les équipements et le local.")
+
+            total_equip = pertes_armoires + pertes_tgbt + pertes_armoires_aux
+            total_global = total_equip + apports_bat
+
+            if total_global == 0:
+                st.error("❌ Aucune donnée disponible. Veuillez configurer les équipements et le local.")
             else:
-                engine = ThermalEngine(safety_margin=0.10)
-                total_equip = pertes_armoires + pertes_disj + pertes_vfd
-                result = engine.compute_total(total_equip, apports_bat)
+                # Calcul simplifié (sans l'engine complet)
+                marge = 0.10  # 10% de marge
+                total_design = total_global * (1 + marge)
+                
                 st.session_state.bilan = {
                     "total_equipements": total_equip,
                     "apports_batiment": apports_bat,
-                    "margin_pct": 10,
-                    "units": result["units"]
+                    "margin_pct": int(marge * 100),
+                    "units": {
+                        "kw": round(total_design / 1000, 2),
+                        "btu_h": round(total_design * 3.412142, 2),
+                        "tr": round(total_design / 3516.85, 2)
+                    }
                 }
-                st.success("Bilan calculé avec succès ! Vous pouvez maintenant générer le PDF.")
+                st.success("✅ Bilan calculé avec succès ! Vous pouvez maintenant générer le PDF.")
                 st.rerun()
-    else:
-        # Données disponibles
-        project_data = st.session_state.project
-        building_data = st.session_state.local
-        armoires_data = st.session_state.get("config_armoires", {"nb": 0, "pertes_totales": 0})
-        disjoncteurs_data = st.session_state.get("config_disjoncteurs", [])
-        variateurs_data = st.session_state.get("config_variateurs", [])
-        bilan_data = st.session_state.bilan
 
-        # Aperçu 
-        st.subheader("Aperçu du rapport")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Projet", project_data.get("nom", "N/A"))
-        col2.metric("Client", project_data.get("client", "N/A"))
-        col3.metric("Ingénieur", project_data.get("ingenieur", "N/A"))
-        st.caption(f"T_ext : {project_data.get('t_ext', 0)} °C | T_int : {project_data.get('t_int', 0)} °C")
+        st.stop()  # Arrêter l'exécution ici si le bilan n'est pas disponible
 
-        with st.expander("Détail des équipements configurés", expanded=False):
-            st.write("**Armoires A :**", armoires_data.get("nb", 0), "unités, pertes totales :", f"{armoires_data.get('pertes_totales', 0):.0f} W")
-            if disjoncteurs_data:
-                st.write("**Disjoncteurs :**")
-                st.dataframe(pd.DataFrame(disjoncteurs_data), use_container_width=True)
-            else:
-                st.write("Aucun disjoncteur configuré.")
-            if variateurs_data:
-                st.write("**Variateurs :**")
-                st.dataframe(pd.DataFrame(variateurs_data), use_container_width=True)
-            else:
-                st.write("Aucun variateur configuré.")
+    # ------------------------------------------------------------
+    # 2. Données disponibles → Affichage du rapport
+    # ------------------------------------------------------------
+    project_data = st.session_state.project
+    building_data = st.session_state.local
+    bilan_data = st.session_state.bilan
 
-        st.markdown("---")
-        st.subheader("Résumé du bilan")
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Pertes équipements", f"{bilan_data['total_equipements']:.0f} W", f"{bilan_data['total_equipements']/1000:.2f} kW")
-        col2.metric("Apports bâtiment", f"{bilan_data['apports_batiment']:.0f} W", f"{bilan_data['apports_batiment']/1000:.2f} kW")
-        col3.metric("Puissance HVAC", f"{bilan_data['units']['kw']:.2f} kW")
-        col4.metric("Capacité recommandée", f"{bilan_data['units']['tr']:.2f} TR")
+    # --- Récupération des données structurées ---
+    armoire_a_quantite = st.session_state.get("armoire_a_quantite", 0)
+    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
 
-        st.divider()
+    tgbt_components = st.session_state.get("tgbt_components", [])
+    pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
 
-        if st.button("Générer et télécharger le PDF", use_container_width=True):
-            output_dir = "reports"
-            if os.path.exists(output_dir) and not os.path.isdir(output_dir):
-                os.remove(output_dir)
-            os.makedirs(output_dir, exist_ok=True)
+    aux_components = st.session_state.get("armoires_aux_components", [])
+    aux_quantite = st.session_state.get("armoires_aux_quantite", 0)
+    pertes_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
 
-            clean_name = "".join(c for c in project_data["nom"] if c.isalnum() or c in (" ", "_")).rstrip()
-            pdf_path = os.path.join(output_dir, f"Bilan_{clean_name.replace(' ', '_')}.pdf")
+    # --- Aperçu du rapport ---
+    st.subheader("📋 Aperçu du rapport")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Projet", project_data.get("nom", "N/A"))
+    col2.metric("Client", project_data.get("client", "N/A"))
+    col3.metric("Ingénieur", project_data.get("ingenieur", "N/A"))
+    st.caption(f"T_ext : {project_data.get('t_ext', 0)} °C | T_int : {project_data.get('t_int', 0)} °C")
 
-            try:
-                PDFReportGenerator.generate(
-                    pdf_path,          # filename (positionnel)
-                    project_data,      # project
-                    building_data,     # building
-                    armoires_data,     # armoires
-                    disjoncteurs_data, # disjoncteurs
-                    variateurs_data,   # variateurs
-                    bilan_data         # bilan
+    # --- Détail des équipements configurés ---
+    with st.expander("Détail des équipements configurés", expanded=False):
+        # Armoires A
+        st.write(f"**Armoires A :** {armoire_a_quantite} unité(s), pertes totales : **{pertes_armoires:.0f} W** ({pertes_armoires/1000:.2f} kW)")
+        
+        # TGBT
+        if tgbt_components:
+            st.write("**TGBT :**")
+            df_tgbt = pd.DataFrame(tgbt_components)
+            df_tgbt_display = df_tgbt.rename(columns={
+                "nom": "Composant",
+                "puissance_unitaire": "Puissance (W)",
+                "quantite": "Qté",
+                "total": "Total (W)"
+            })
+            st.dataframe(df_tgbt_display, use_container_width=True, hide_index=True)
+            st.write(f"**Pertes totales TGBT :** {pertes_tgbt:.0f} W ({pertes_tgbt/1000:.2f} kW)")
+        else:
+            st.write("**TGBT :** Aucun composant configuré.")
+
+        # Armoires Auxiliaires
+        if aux_components:
+            st.write(f"**Armoires Auxiliaires :** {aux_quantite} unité(s) identique(s)")
+            df_aux = pd.DataFrame(aux_components)
+            df_aux_display = df_aux.rename(columns={
+                "nom": "Composant",
+                "puissance_unitaire": "Puissance (W)",
+                "quantite": "Qté",
+                "total": "Total (W)"
+            })
+            st.dataframe(df_aux_display, use_container_width=True, hide_index=True)
+            st.write(f"**Pertes totales Auxiliaires :** {pertes_aux:.0f} W ({pertes_aux/1000:.2f} kW)")
+        else:
+            st.write("**Armoires Auxiliaires :** Aucune configurée.")
+
+    # --- Résumé du bilan ---
+    st.markdown("---")
+    st.subheader("Résumé du bilan thermique")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Pertes équipements", f"{bilan_data['total_equipements']:.0f} W", f"{bilan_data['total_equipements']/1000:.2f} kW")
+    col2.metric("Apports bâtiment", f"{bilan_data['apports_batiment']:.0f} W", f"{bilan_data['apports_batiment']/1000:.2f} kW")
+    col3.metric("Puissance HVAC", f"{bilan_data['units']['kw']:.2f} kW")
+    col4.metric("Capacité recommandée", f"{bilan_data['units']['tr']:.2f} TR")
+
+    st.divider()
+
+    # --- Génération du PDF ---
+    if st.button("📄 Générer et télécharger le PDF", use_container_width=True, type="primary"):
+        output_dir = "reports"
+        os.makedirs(output_dir, exist_ok=True)
+
+        clean_name = "".join(c for c in project_data.get("nom", "Projet") if c.isalnum() or c in (" ", "_")).rstrip()
+        pdf_path = os.path.join(output_dir, f"Bilan_{clean_name.replace(' ', '_')}.pdf")
+
+        # Construction des données pour le PDF (compatible avec l'ancienne interface)
+        # On adapte les nouvelles données au format attendu par PDFReportGenerator
+        armoires_data = {
+            "nb": armoire_a_quantite,
+            "pertes_totales": pertes_armoires
+        }
+
+        # On reconstruit une liste de disjoncteurs à partir des TGBT
+        disjoncteurs_data = []
+        for comp in tgbt_components:
+            if "disjoncteur" in comp["nom"].lower() or "sectionneur" in comp["nom"].lower():
+                disjoncteurs_data.append({
+                    "nom": comp["nom"],
+                    "puissance": comp["puissance_unitaire"],
+                    "quantite": comp["quantite"],
+                    "total": comp["total"]
+                })
+
+        # On reconstruit une liste de variateurs à partir des TGBT
+        variateurs_data = []
+        for comp in tgbt_components:
+            if "contacteur" in comp["nom"].lower() or "variateurs" in comp["nom"].lower():
+                variateurs_data.append({
+                    "nom": comp["nom"],
+                    "puissance": comp["puissance_unitaire"],
+                    "quantite": comp["quantite"],
+                    "total": comp["total"]
+                })
+
+        try:
+            # Appel au générateur de PDF
+            PDFReportGenerator.generate(
+                pdf_path,
+                project_data,
+                building_data,
+                armoires_data,
+                disjoncteurs_data,
+                variateurs_data,
+                bilan_data
+            )
+
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    label="💾 Télécharger le PDF",
+                    data=f,
+                    file_name=os.path.basename(pdf_path),
+                    mime="application/pdf",
+                    use_container_width=True,
                 )
-                with open(pdf_path, "rb") as f:
-                    st.download_button(
-                        label="💾 Télécharger le PDF",
-                        data=f,
-                        file_name=os.path.basename(pdf_path),
-                        mime="application/pdf",
-                        use_container_width=True,
-                    )
-                st.success(f"PDF généré avec succès : {os.path.basename(pdf_path)}")
-            except Exception as e:
-                st.error(f"Erreur lors de la génération du PDF : {e}")
-    
+            st.success(f"✅ PDF généré avec succès : {os.path.basename(pdf_path)}")
+        except Exception as e:
+            st.error(f"❌ Erreur lors de la génération du PDF : {e}")
