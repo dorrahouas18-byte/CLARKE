@@ -5,6 +5,9 @@ import json
 import os
 
 DEFAULT_DB = {
+    # ------------------------------------------------------------
+    # 1. VARIATEURS DANFOSS FC202 (données que vous aviez déjà)
+    # ------------------------------------------------------------
     "variateurs_danfoss_fc202": [
         {"code": "PK37", "puissance_kw": 0.37, "pertes_w": 35},
         {"code": "PK55", "puissance_kw": 0.55, "pertes_w": 42},
@@ -27,29 +30,78 @@ DEFAULT_DB = {
         {"code": "P75K", "puissance_kw": 75.0, "pertes_w": 1384},
         {"code": "P90K", "puissance_kw": 90.0, "pertes_w": 1474}
     ],
+
+    # ------------------------------------------------------------
+    # 2. DISJONCTEURS SCHNEIDER (extraits de votre fichier Excel)
+    # ------------------------------------------------------------
     "disjoncteurs": [
-    # Acti9 iC60N 
-    {"fabricant": "Schneider Electric", "modele": "iC60N 1P 6A", "pertes_w": 5.0},
-    {"fabricant": "Schneider Electric", "modele": "iC60N 1P 16A", "pertes_w": 10.0},
-    {"fabricant": "Schneider Electric", "modele": "iC60N 3P 32A", "pertes_w": 15.0},
-    {"fabricant": "Schneider Electric", "modele": "iC60N 4P 63A", "pertes_w": 25.0},
-    # ComPacT NSX 
-    {"fabricant": "Schneider Electric", "modele": "NSX100 3P 100A", "pertes_w": 15.0},
-    {"fabricant": "Schneider Electric", "modele": "NSX160 3P 160A", "pertes_w": 22.0},
-    {"fabricant": "Schneider Electric", "modele": "NSX250 3P 250A", "pertes_w": 35.0},
-    {"fabricant": "Schneider Electric", "modele": "NSX400 3P 400A", "pertes_w": 60.0},
-    {"fabricant": "Schneider Electric", "modele": "NSX630 3P 630A", "pertes_w": 90.0},
-    # Masterpact MTZ 
-    {"fabricant": "Schneider Electric", "modele": "MTZ1 06 (630A)", "pertes_w": 150},
-    {"fabricant": "Schneider Electric", "modele": "MTZ2 20 (2000A)", "pertes_w": 450},
-    {"fabricant": "Schneider Electric", "modele": "MTZ3 32 (3200A)", "pertes_w": 900},
-    # TeSys GV 
-    {"fabricant": "Schneider Electric", "modele": "GV2ME14 (6-10A)", "pertes_w": 8.0},
-    {"fabricant": "Schneider Electric", "modele": "GV3P32 (25-32A)", "pertes_w": 15.0},
-    # TeSys D 
-    {"fabricant": "Schneider Electric", "modele": "LC1D09P7 (9A)", "pertes_w": 6.0},
-    {"fabricant": "Schneider Electric", "modele": "LC1D32P7 (32A)", "pertes_w": 18.0},
-]
+        # --- Acti9 iC60N (modulaires 1-63A) ---
+        {"fabricant": "Schneider Electric", "modele": "iC60N 1P 6A (C)", "pertes_w": 5.0},
+        {"fabricant": "Schneider Electric", "modele": "iC60N 1P 16A (C)", "pertes_w": 10.0},
+        {"fabricant": "Schneider Electric", "modele": "iC60N 3P 32A (C)", "pertes_w": 15.0},
+        {"fabricant": "Schneider Electric", "modele": "iC60N 4P 63A (C)", "pertes_w": 25.0},
+        {"fabricant": "Schneider Electric", "modele": "iC60N 1P+N 16A (C)", "pertes_w": 8.0},
+        
+        # --- ComPacT NSX (boîtier moulé 100-630A) ---
+        {"fabricant": "Schneider Electric", "modele": "NSX100 3P 100A", "pertes_w": 15.0},
+        {"fabricant": "Schneider Electric", "modele": "NSX160 3P 160A", "pertes_w": 22.0},
+        {"fabricant": "Schneider Electric", "modele": "NSX250 3P 250A", "pertes_w": 35.0},
+        {"fabricant": "Schneider Electric", "modele": "NSX400 3P 400A", "pertes_w": 60.0},
+        {"fabricant": "Schneider Electric", "modele": "NSX630 3P 630A", "pertes_w": 90.0},
+        
+        # --- Masterpact MTZ (disjoncteurs ouverts TGBT) ---
+        {"fabricant": "Schneider Electric", "modele": "MTZ1 06 (630-1000A)", "pertes_w": 150},
+        {"fabricant": "Schneider Electric", "modele": "MTZ2 20 (1000-2000A)", "pertes_w": 450},
+        {"fabricant": "Schneider Electric", "modele": "MTZ3 32 (1600-3200A)", "pertes_w": 900},
+        {"fabricant": "Schneider Electric", "modele": "MTZ3 63 (4000-6300A)", "pertes_w": 1300},
+        
+        # --- TeSys GV (disjoncteurs moteur) ---
+        {"fabricant": "Schneider Electric", "modele": "GV2ME14 (6-10A)", "pertes_w": 8.0},
+        {"fabricant": "Schneider Electric", "modele": "GV2ME21 (17-23A)", "pertes_w": 12.0},
+        {"fabricant": "Schneider Electric", "modele": "GV3P32 (25-32A)", "pertes_w": 15.0},
+        {"fabricant": "Schneider Electric", "modele": "GV3P65 (48-65A)", "pertes_w": 30.0},
+        {"fabricant": "Schneider Electric", "modele": "GV7RE100 (63-100A)", "pertes_w": 45.0},
+        {"fabricant": "Schneider Electric", "modele": "GV7RE250 (160-250A)", "pertes_w": 80.0},
+        
+        # --- TeSys D (contacteurs) ---
+        {"fabricant": "Schneider Electric", "modele": "LC1D09P7 (9A)", "pertes_w": 6.0},
+        {"fabricant": "Schneider Electric", "modele": "LC1D18P7 (18A)", "pertes_w": 10.0},
+        {"fabricant": "Schneider Electric", "modele": "LC1D32P7 (32A)", "pertes_w": 18.0},
+        {"fabricant": "Schneider Electric", "modele": "LC1D65P7 (65A)", "pertes_w": 30.0},
+        {"fabricant": "Schneider Electric", "modele": "LC1D150P7 (150A)", "pertes_w": 60.0}
+    ],
+
+    # ------------------------------------------------------------
+    # 3. JEUX DE BARRES (cuivre, par mètre) - votre liste
+    # ------------------------------------------------------------
+    "jeux_de_barres": [
+        {"courant": 250, "pertes_par_metre": 20},
+        {"courant": 400, "pertes_par_metre": 40},
+        {"courant": 630, "pertes_par_metre": 80},
+        {"courant": 1000, "pertes_par_metre": 150},
+        {"courant": 1250, "pertes_par_metre": 200},
+        {"courant": 1600, "pertes_par_metre": 300},
+        {"courant": 2000, "pertes_par_metre": 450},
+        {"courant": 2500, "pertes_par_metre": 650},
+        {"courant": 3200, "pertes_par_metre": 900},
+        {"courant": 4000, "pertes_par_metre": 1300}
+    ],
+
+    # ------------------------------------------------------------
+    # 4. ACCESSOIRES (ventilation, alimentation, etc.)
+    # ------------------------------------------------------------
+    "accessoires": [
+        {"nom": "Interrupteur-sectionneur (630A)", "pertes_w": 100},
+        {"nom": "Contacteur (puissance)", "pertes_w": 50},
+        {"nom": "Contacteur (auxiliaire)", "pertes_w": 20},
+        {"nom": "Parafoudre (type 1+2)", "pertes_w": 15},
+        {"nom": "Transformateur de courant (TC)", "pertes_w": 5},
+        {"nom": "Compteur / Analyseur", "pertes_w": 15},
+        {"nom": "Bornier de raccordement (jeu)", "pertes_w": 10},
+        {"nom": "Ventilateur d'armoire (230V)", "pertes_w": 30},
+        {"nom": "Alimentation 24VDC", "pertes_w": 25},
+        {"nom": "Coffret vide (enveloppe)", "pertes_w": 50}
+    ]
 }
 
 class DatabaseManager:
