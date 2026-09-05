@@ -10,7 +10,6 @@ from datetime import datetime
 from calculs import UnitConverter, ThermalEngine
 from local import BuildingThermalCalculator
 from base_donnees import DatabaseManager
-from templates import ARMOIRE_A_DEPARTS_STANDARDS, PERTES_ARMOIRE_A_UNITAIRE_W
 from rapport import PDFReportGenerator
 
 # ----------------------------------------------------
