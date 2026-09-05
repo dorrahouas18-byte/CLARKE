@@ -1,148 +1,48 @@
 {
-    "disjoncteurs": [
-        {
-            "fabricant": "Schneider Electric",
-            "serie": "NSX",
-            "modele": "NSX100H",
-            "calibre": 100.0,
-            "pertes_nominales_w": 15.0,
-            "pertes_w": 60.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": 0.15000000000000002
-        },
-        {
-            "fabricant": "Schneider Electric",
-            "serie": "NSX",
-            "modele": "NSX250F",
-            "calibre": 250.0,
-            "pertes_nominales_w": 35.0,
-            "pertes_w": 60.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": 0.3500000000000001
-        },
-        {
-            "fabricant": "Schneider Electric",
-            "serie": "Masterpact",
-            "modele": "MTZ1 16",
-            "calibre": 1600.0,
-            "pertes_nominales_w": 180.0,
-            "pertes_w": 60.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": 1.8000000000000003
-        },
-        {
-            "fabricant": "ABB",
-            "serie": "Tmax",
-            "modele": "XT2N",
-            "calibre": 160.0,
-            "pertes_nominales_w": 22.0,
-            "pertes_w": 60.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": 0.22000000000000003
-        },
-        {
-            "fabricant": "ABB",
-            "serie": "Emax2",
-            "modele": "E2.2",
-            "calibre": 2000.0,
-            "pertes_nominales_w": 240.0,
-            "pertes_w": 60.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": 2.4000000000000004
-        },
-        {
-            "fabricant": "Schneider Electric",
-            "serie": NaN,
-            "modele": "ex: NSX400 3P",
-            "calibre": NaN,
-            "pertes_nominales_w": NaN,
-            "pertes_w": 25.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": NaN
-        },
-        {
-            "fabricant": "Schneider Electric",
-            "serie": NaN,
-            "modele": "ex: NSX400 3P",
-            "calibre": NaN,
-            "pertes_nominales_w": NaN,
-            "pertes_w": 25.0,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 10.0,
-            "pertes_effectives_w": NaN
-        },
-        {
-            "fabricant": "Schneider Electric",
-            "serie": NaN,
-            "modele": "NSX100N 3P",
-            "calibre": NaN,
-            "pertes_nominales_w": 15.0,
-            "pertes_w": NaN,
-            "calibre_a": 100.0,
-            "taux_charge_pct": 80.0,
-            "pertes_effectives_w": 9.600000000000001
-        },
-        {
-            "fabricant": "ABB",
-            "serie": NaN,
-            "modele": "NSX100N 3P",
-            "calibre": NaN,
-            "pertes_nominales_w": 14.0,
-            "pertes_w": NaN,
-            "calibre_a": 110.0,
-            "taux_charge_pct": 76.0,
-            "pertes_effectives_w": 8.0864
-        }
-    ],
     "variateurs": [
-        {
-            "fabricant": "Danfoss",
-            "modele": "VLT AutomationDrive FC 302",
-            "puissance_kw": 11.0,
-            "rendement": 0.97,
-            "pertes_w": 330
-        },
-        {
-            "fabricant": "Danfoss",
-            "modele": "VLT AutomationDrive FC 302",
-            "puissance_kw": 45.0,
-            "rendement": 0.98,
-            "pertes_w": 900
-        },
-        {
-            "fabricant": "Danfoss",
-            "modele": "VLT AQUA Drive FC 202",
-            "puissance_kw": 75.0,
-            "rendement": 0.98,
-            "pertes_w": 1500
-        }
+        {"fabricant": "Danfoss", "modele": "FC202 P45K", "puissance_kw": 45.0, "pertes_w": 843},
+        {"fabricant": "Danfoss", "modele": "FC202 P37K", "puissance_kw": 37.0, "pertes_w": 698},
+        {"fabricant": "Danfoss", "modele": "FC202 P18K", "puissance_kw": 18.5, "pertes_w": 465},
+        {"fabricant": "Danfoss", "modele": "FC202 P55K", "puissance_kw": 55.0, "pertes_w": 1083},
+        {"fabricant": "Danfoss", "modele": "FC202 P75K", "puissance_kw": 75.0, "pertes_w": 1384},
+        {"fabricant": "Danfoss", "modele": "FC202 P90K", "puissance_kw": 90.0, "pertes_w": 1474}
     ],
-    "variateurs_danfoss_fc202": [
-        {
-            "code": "P11K-FC202",
-            "puissance_kw": 11.0,
-            "pertes_w": 392.0,
-            "taux_charge_pct": 100,
-            "pertes_effectives_w": 392.0
-        },
-        {
-            "code": "P11K-FC202",
-            "puissance_kw": 11.0,
-            "pertes_w": 392.0,
-            "taux_charge_pct": 100,
-            "pertes_effectives_w": 392.0
-        },
-        {
-            "code": "P11K-FC202",
-            "puissance_kw": 11.0,
-            "pertes_w": 392.0,
-            "taux_charge_pct": 100,
+    "disjoncteurs": [
+        {"fabricant": "Schneider Electric", "modele": "Masterpact MTZ3 32 (3200A)", "pertes_w": 900},
+        {"fabricant": "Schneider Electric", "modele": "Masterpact MTZ2 20 (2000A)", "pertes_w": 450},
+        {"fabricant": "Schneider Electric", "modele": "ComPacT NSX400 (400A)", "pertes_w": 150},
+        {"fabricant": "Schneider Electric", "modele": "ComPacT NSX250 (250A)", "pertes_w": 120},
+        {"fabricant": "Schneider Electric", "modele": "Acti9 iC60N 63A 3P", "pertes_w": 25},
+        {"fabricant": "Schneider Electric", "modele": "Acti9 iC60N 32A 3P", "pertes_w": 15},
+        {"fabricant": "Schneider Electric", "modele": "Acti9 iC60N 16A 1P", "pertes_w": 10},
+        {"fabricant": "Schneider Electric", "modele": "Interrupteur-sectionneur 630A", "pertes_w": 100},
+        {"fabricant": "Schneider Electric", "modele": "TeSys GV2ME14 (6-10A)", "pertes_w": 8},
+        {"fabricant": "Schneider Electric", "modele": "TeSys LC1D32P7 (32A)", "pertes_w": 18}
+    ],
+    "jeux_de_barres": [
+        {"courant": 250, "pertes_par_metre": 20},
+        {"courant": 400, "pertes_par_metre": 40},
+        {"courant": 630, "pertes_par_metre": 80},
+        {"courant": 1000, "pertes_par_metre": 150},
+        {"courant": 1250, "pertes_par_metre": 200},
+        {"courant": 1600, "pertes_par_metre": 300},
+        {"courant": 2000, "pertes_par_metre": 450},
+        {"courant": 2500, "pertes_par_metre": 650},
+        {"courant": 3200, "pertes_par_metre": 900},
+        {"courant": 4000, "pertes_par_metre": 1300}
+    ],
+    "accessoires": [
+        {"nom": "Contacteur (puissance)", "pertes_w": 50},
+        {"nom": "Contacteur (auxiliaire)", "pertes_w": 20},
+        {"nom": "Parafoudre (type 1+2)", "pertes_w": 15},
+        {"nom": "Transformateur de courant", "pertes_w": 5},
+        {"nom": "Compteur / Analyseur", "pertes_w": 15},
+        {"nom": "Bornier de raccordement", "pertes_w": 10},
+        {"nom": "Ventilateur d'armoire 230V", "pertes_w": 30},
+        {"nom": "Alimentation 24VDC", "pertes_w": 25},
+        {"nom": "Coffret vide (enveloppe)", "pertes_w": 50}
+    ]
+}
             "pertes_effectives_w": 392.0
         }
     ]
