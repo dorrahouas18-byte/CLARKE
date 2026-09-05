@@ -233,7 +233,7 @@ if "bilan_computed" not in st.session_state:
 
 # --- Résultats de calcul (pour les autres pages) ---
 if "pertes_armoires_w" not in st.session_state:
-    st.session_state.pertes_armoires_w = PERTES_ARMOIRE_A_UNITAIRE_W
+    st.session_state.pertes_armoires_w = 0.0
 
 if "apports_batiment_w" not in st.session_state:
     st.session_state.apports_batiment_w = 0.0
