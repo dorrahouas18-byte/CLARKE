@@ -28,12 +28,28 @@ DEFAULT_DB = {
         {"code": "P90K", "puissance_kw": 90.0, "pertes_w": 1474}
     ],
     "disjoncteurs": [
-        {"fabricant": "Schneider Electric", "modele": "NSX100 3P 100A", "pertes_w": 15.0},
-        {"fabricant": "Schneider Electric", "modele": "NSX250 3P 250A", "pertes_w": 35.0},
-        {"fabricant": "Schneider Electric", "modele": "iC60N 3P 16A", "pertes_w": 7.5},
-        {"fabricant": "ABB", "modele": "XT2N 160 3P", "pertes_w": 22.0},
-        {"fabricant": "ABB", "modele": "S203 16A", "pertes_w": 6.8}
-    ]
+    # Acti9 iC60N 
+    {"fabricant": "Schneider Electric", "modele": "iC60N 1P 6A", "pertes_w": 5.0},
+    {"fabricant": "Schneider Electric", "modele": "iC60N 1P 16A", "pertes_w": 10.0},
+    {"fabricant": "Schneider Electric", "modele": "iC60N 3P 32A", "pertes_w": 15.0},
+    {"fabricant": "Schneider Electric", "modele": "iC60N 4P 63A", "pertes_w": 25.0},
+    # ComPacT NSX 
+    {"fabricant": "Schneider Electric", "modele": "NSX100 3P 100A", "pertes_w": 15.0},
+    {"fabricant": "Schneider Electric", "modele": "NSX160 3P 160A", "pertes_w": 22.0},
+    {"fabricant": "Schneider Electric", "modele": "NSX250 3P 250A", "pertes_w": 35.0},
+    {"fabricant": "Schneider Electric", "modele": "NSX400 3P 400A", "pertes_w": 60.0},
+    {"fabricant": "Schneider Electric", "modele": "NSX630 3P 630A", "pertes_w": 90.0},
+    # Masterpact MTZ 
+    {"fabricant": "Schneider Electric", "modele": "MTZ1 06 (630A)", "pertes_w": 150},
+    {"fabricant": "Schneider Electric", "modele": "MTZ2 20 (2000A)", "pertes_w": 450},
+    {"fabricant": "Schneider Electric", "modele": "MTZ3 32 (3200A)", "pertes_w": 900},
+    # TeSys GV 
+    {"fabricant": "Schneider Electric", "modele": "GV2ME14 (6-10A)", "pertes_w": 8.0},
+    {"fabricant": "Schneider Electric", "modele": "GV3P32 (25-32A)", "pertes_w": 15.0},
+    # TeSys D 
+    {"fabricant": "Schneider Electric", "modele": "LC1D09P7 (9A)", "pertes_w": 6.0},
+    {"fabricant": "Schneider Electric", "modele": "LC1D32P7 (32A)", "pertes_w": 18.0},
+]
 }
 
 class DatabaseManager:
