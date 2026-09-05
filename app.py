@@ -486,46 +486,47 @@ elif menu == "Armoire Auxiliaire":
 
     st.markdown("---")
 
-    # --- 2. Composition libre ---
-    COMPOSANTS_AUX = {
-        "Disjoncteur général (160A)": 80,
-        "Disjoncteur divisionnaire (63A)": 25,
-        "Disjoncteur divisionnaire (32A)": 15,
-        "Disjoncteur divisionnaire (16A)": 10,
-        "Interrupteur-sectionneur (160A)": 60,
-        "Contacteur (puissance)": 50,
-        "Jeu de barres - 160A (~10 W/m)": 10,
-        "Bornier de raccordement (jeu)": 10,
-        "Ventilateur d'armoire (230V)": 30,
-        "Alimentation 24VDC": 25,
-        "Coffret vide (enveloppe)": 50
-    }
+  COMPOSANTS_AUX = {
+    # ====== DISJONCTEURS DE PUISSANCE ======
+    "Disjoncteur général (160A)": 80,
+    "Interrupteur-sectionneur (160A)": 60,
 
-    with st.form(key="add_aux_form", clear_on_submit=True):
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-            composant_choisi = st.selectbox("Sélectionnez un composant", list(COMPOSANTS_AUX))
-            puissance_unitaire = COMPOSANTS_AUX[composant_choisi]
-            st.caption(f"⚡ Dissipation : **{puissance_unitaire} W**")
-        with col2:
-            qte_composant = st.number_input("Qté", min_value=1, step=1, value=1)
-        with col3:
-            total_ligne = puissance_unitaire * qte_composant
-            st.metric("Total", f"{total_ligne} W")
-        
-        submitted = st.form_submit_button("➕ Ajouter ce composant", type="primary")
-        if submitted:
-            st.session_state.armoires_aux_components.append({
-                "nom": composant_choisi,
-                "puissance_unitaire": puissance_unitaire,
-                "quantite": qte_composant,
-                "total": total_ligne
-            })
-            st.success(f"Ajouté !")
-            st.rerun()
+    # ====== NOUVEAU : ACTI9 iC60N (modulaires) pour les départs ======
+    # --- 1P+N (230V) : éclairage, prises, alimentations 24V ---
+    "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
+    "Disj. Acti9 iC60N 1P+N 10A (9W)": 9,
+    "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
+    "Disj. Acti9 iC60N 1P+N 20A (12W)": 12,
+    "Disj. Acti9 iC60N 1P+N 25A (14W)": 14,
+    "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
+    "Disj. Acti9 iC60N 1P+N 40A (18W)": 18,
+    "Disj. Acti9 iC60N 1P+N 50A (22W)": 22,
+    "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
 
-    st.markdown("---")
+    # --- 4P (400V) : petits moteurs triphasés, pompes, ventilateurs ---
+    "Disj. Acti9 iC60N 4P 6A (9W)": 9,
+    "Disj. Acti9 iC60N 4P 10A (10W)": 10,
+    "Disj. Acti9 iC60N 4P 16A (12W)": 12,
+    "Disj. Acti9 iC60N 4P 20A (14W)": 14,
+    "Disj. Acti9 iC60N 4P 25A (16W)": 16,
+    "Disj. Acti9 iC60N 4P 32A (18W)": 18,
+    "Disj. Acti9 iC60N 4P 40A (22W)": 22,
+    "Disj. Acti9 iC60N 4P 50A (25W)": 25,
+    "Disj. Acti9 iC60N 4P 63A (28W)": 28,
 
+    # ====== CONTACTEURS ======
+    "Contacteur (puissance)": 50,
+    "Contacteur (auxiliaire)": 20,
+
+    # ====== JEUX DE BARRES ======
+    "Jeu de barres - 160A (~10 W/m)": 10,
+
+    # ====== ACCESSOIRES ======
+    "Bornier de raccordement (jeu)": 10,
+    "Ventilateur d'armoire (230V)": 30,
+    "Alimentation 24VDC": 25,
+    "Coffret vide (enveloppe)": 50
+}
     # --- 3. Affichage de la composition de l'armoire type ---
     if st.session_state.armoires_aux_components:
         df = pd.DataFrame(st.session_state.armoires_aux_components)
@@ -539,6 +540,7 @@ elif menu == "Armoire Auxiliaire":
         st.dataframe(df_display, use_container_width=True, hide_index=True)
 
         total_type = df["total"].sum()
+        
         # Calcul du total multiplié par la quantité
         total_general = total_type * st.session_state.armoires_aux_quantite
         st.session_state.pertes_armoires_aux_w = total_general
@@ -560,8 +562,14 @@ elif menu == "Armoire Auxiliaire":
 # ----------------------------------------------------
 elif menu == "Local":
     st.title("Local Électrique & Enveloppe du Bâtiment")
-    st.caption("Définissez les caractéristiques du local pour calculer les apports thermiques.")
+    st.caption("Définissez les caractéristiques géométriques et la configuration réelle de l'éclairage. Le renouvellement d'air (1.5 vol/h) et les occupants (1) sont fixés.")
     st.markdown("---")
+
+    # --- Initialisation des valeurs d'éclairage si absentes ---
+    if "nb_luminaires" not in st.session_state.local:
+        st.session_state.local["nb_luminaires"] = 3
+    if "puissance_luminaire" not in st.session_state.local:
+        st.session_state.local["puissance_luminaire"] = 40.0
 
     with st.form("local_parameters_form"):
         st.subheader("1. Géométrie et Parois")
@@ -575,15 +583,34 @@ elif menu == "Local":
             wall_type = st.selectbox("Type de Murs", wall_options, index=wall_options.index(st.session_state.local["wall_type"]))
             roof_type = st.selectbox("Type de Toiture", wall_options, index=wall_options.index(st.session_state.local["roof_type"]))
 
-        st.subheader("2. Éclairage & Infiltration")
-        col_int1, col_int2, col_int3 = st.columns(3)
-        with col_int1:
-            lighting = st.number_input("Éclairage (W/m²)", min_value=0.0, max_value=50.0, value=float(st.session_state.local["lighting_w_m2"]), step=1.0)
-        with col_int2:
-            ach = st.number_input("Renouvellement d'air (ACH)", min_value=0.0, max_value=10.0, value=float(st.session_state.local["ach"]), step=0.1)
-        with col_int3:
-            occupants = st.number_input("Nombre d'occupants", min_value=0, max_value=20, value=int(st.session_state.local["occupants"]), step=1)
+        st.subheader("2. Éclairage (configuration réelle)")
+        col_light1, col_light2 = st.columns(2)
+        with col_light1:
+            nb_luminaires = st.number_input(
+                "Nombre de luminaires", 
+                min_value=0, 
+                step=1, 
+                value=st.session_state.local["nb_luminaires"]
+            )
+        with col_light2:
+            puissance_luminaire = st.number_input(
+                "Puissance unitaire (W)", 
+                min_value=0.0, 
+                step=5.0, 
+                value=float(st.session_state.local["puissance_luminaire"])
+            )
 
+        # Calcul dynamique de la puissance totale d'éclairage
+        total_lighting_w = nb_luminaires * puissance_luminaire
+        surface = length * width
+        if surface > 0:
+            densite_equivalente = total_lighting_w / surface
+            st.caption(f"💡 **Puissance d'éclairage totale :** {total_lighting_w:.1f} W (soit {densite_equivalente:.1f} W/m²)")
+        else:
+            st.caption("💡 Puissance d'éclairage totale : 0 W")
+
+        st.caption("📌 **Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
+        
         submit_local = st.form_submit_button("💾 Enregistrer & Calculer les apports")
 
     if submit_local:
@@ -592,39 +619,62 @@ elif menu == "Local":
         st.session_state.local["height"] = height
         st.session_state.local["wall_type"] = wall_type
         st.session_state.local["roof_type"] = roof_type
-        st.session_state.local["lighting_w_m2"] = lighting
-        st.session_state.local["ach"] = ach
-        st.session_state.local["occupants"] = occupants
+        st.session_state.local["nb_luminaires"] = nb_luminaires
+        st.session_state.local["puissance_luminaire"] = puissance_luminaire
         st.success("Paramètres du local enregistrés !")
         st.rerun()
 
-    # Calcul et affichage
+    # --- Calcul et affichage des résultats (toujours effectué) ---
+    # Récupération des valeurs depuis session_state
+    length = st.session_state.local.get("length", 8.0)
+    width = st.session_state.local.get("width", 5.0)
+    height = st.session_state.local.get("height", 3.5)
+    wall_type = st.session_state.local.get("wall_type", "Mur isolé (5 cm)")
+    roof_type = st.session_state.local.get("roof_type", "Toiture sandwich isolée")
+    nb_luminaires = st.session_state.local.get("nb_luminaires", 3)
+    puissance_luminaire = st.session_state.local.get("puissance_luminaire", 40.0)
+
+    # Paramètres fixes pour le calcul
+    total_lighting_w = nb_luminaires * puissance_luminaire
+    surface = length * width
+    lighting_density = total_lighting_w / surface if surface > 0 else 0.0
+
+    ACH = 1.5      # Renouvellements par heure (fixé)
+    OCCUPANTS = 1  # Personne (fixé)
+
+    # Appel au moteur de calcul (il utilise lighting_density en W/m²)
     res_local = BuildingThermalCalculator.compute_building_gains(
-        st.session_state.local["length"],
-        st.session_state.local["width"],
-        st.session_state.local["height"],
-        st.session_state.local["wall_type"],
-        st.session_state.local["roof_type"],
+        length,
+        width,
+        height,
+        wall_type,
+        roof_type,
         st.session_state.project["t_ext"],
         st.session_state.project["t_int"],
-        st.session_state.local["lighting_w_m2"],
-        st.session_state.local["ach"],
-        st.session_state.local["occupants"]
+        lighting_density,   # On lui passe la densité calculée
+        ACH,
+        OCCUPANTS
     )
 
     total_bat = res_local["total_gains_w"]
     st.session_state.apports_batiment_w = total_bat
-
     details = res_local["details"]
+
     st.markdown("---")
     st.subheader("Bilan des apports du local")
+    
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Transmission", f"{details['transmission_w']:.1f} W", f"{details['transmission_w']/1000:.2f} kW")
     col2.metric("Éclairage + Occupants", f"{details['lighting_w']:.1f} W", f"{details['lighting_w']/1000:.2f} kW")
     col3.metric("Ventilation / Infiltration", f"{details['ventilation_w']:.1f} W", f"{details['ventilation_w']/1000:.2f} kW")
     col4.metric("Total local", f"{total_bat:.1f} W", f"{total_bat/1000:.2f} kW", delta_color="inverse")
 
-    # Graphique de répartition
+    # --- Affichage détaillé de l'éclairage (réel) ---
+    st.caption(f"Détail éclairage : **{nb_luminaires}** luminaire(s) × **{puissance_luminaire:.0f}** W = **{total_lighting_w:.1f} W**")
+
+    # Graphique de répartition----
+# PAGE : Bilan Thermique (synthèse)
+# ----------------------------------------------------
     df_chart = pd.DataFrame({
         "Poste": ["Transmission", "Éclairage+Occupants", "Ventilation"],
         "Watts": [details['transmission_w'], details['lighting_w'], details['ventilation_w']]
@@ -632,10 +682,7 @@ elif menu == "Local":
     fig = px.bar(df_chart, x="Poste", y="Watts", text_auto=".1f", color="Poste", title="Répartition des apports du local")
     fig.update_layout(showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
-
-# ----------------------------------------------------
-# PAGE : Bilan Thermique (synthèse)
-# ----------------------------------------------------
+# ------------------------------------------------
 elif menu == "Bilan Thermique":
     st.title("Bilan Thermique et Dimensionnement AC")
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
