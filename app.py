@@ -187,39 +187,76 @@ if "local" not in st.session_state:
         "lighting_w_m2": 10.0, "ach": 1.5, "occupants": 1
     }
 
-# --- Configurations détaillées des équipements ---
+# --- Configuration des Armoires A ---
 if "config_armoires" not in st.session_state:
     st.session_state.config_armoires = {
         "nb": 1,
         "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
         "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
     }
-
 if "nb_armoires_a" not in st.session_state:
-    st.session_state.nb_armoires_a = 1
+    st.session_state.nb_armoires_a = 1  # Ancienne variable (plus utilisée par l'UI)
 
-if "config_disjoncteurs" not in st.session_state:
-    st.session_state.config_disjoncteurs = []
+# --- Configuration TGBT ---
+if "tgbt_components" not in st.session_state:
+    st.session_state.tgbt_components = []
+if "pertes_tgbt_w" not in st.session_state:
+    st.session_state.pertes_tgbt_w = 0.0
 
-if "config_variateurs" not in st.session_state:
-    st.session_state.config_variateurs = []
+# --- Configuration des Armoires A ---
+if "config_armoires" not in st.session_state:
+    st.session_state.config_armoires = {
+        "nb": 1,
+        "pertes_unitaire": PERTES_ARMOIRE_A_UNITAIRE_W,
+        "pertes_totales": PERTES_ARMOIRE_A_UNITAIRE_W
+    }
+if "nb_armoires_a" not in st.session_state:
+    st.session_state.nb_armoires_a = 1  
 
-# --- Résultats des calculs ---
+if "armoire_a_quantite" not in st.session_state:
+    st.session_state.armoire_a_quantite = 1  
+
+# --- Configuration Armoire Auxiliaire ---
+if "armoires_aux_components" not in st.session_state:
+    st.session_state.armoires_aux_components = []
+if "armoires_aux_quantite" not in st.session_state:
+    st.session_state.armoires_aux_quantite = 1
+if "pertes_armoires_aux_w" not in st.session_state:
+    st.session_state.pertes_armoires_aux_w = 0.0
+
+# --- Résultats du Bilan Thermique ---
+if "bilan_results" not in st.session_state:
+    st.session_state.bilan_results = {
+        'q_equipements': 0.0,
+        'q_eclairage': 0.0,
+        'q_interne': 0.0,
+        'q_transmission': 0.0,
+        'q_ventilation': 0.0,
+        'q_enveloppe': 0.0,
+        'q_totale_brut': 0.0,
+        'q_totale_design': 0.0,
+        'puissance_kw': 0.0,
+        'puissance_btu': 0.0,
+        'puissance_tr': 0.0,
+        'debit_air': 0.0,
+        'marge_pourcent': 15,
+        'q_interne_display': 0.0,
+        'q_enveloppe_display': 0.0,
+        'pie_data': pd.DataFrame(),
+        'sens_data': pd.DataFrame()
+    }
+if "bilan_computed" not in st.session_state:
+    st.session_state.bilan_computed = False
+
+# --- Résultats de calcul (pour les autres pages) ---
 if "pertes_armoires_w" not in st.session_state:
     st.session_state.pertes_armoires_w = PERTES_ARMOIRE_A_UNITAIRE_W
-
-if "pertes_disjoncteurs_w" not in st.session_state:
-    st.session_state.pertes_disjoncteurs_w = 0.0
-
-if "pertes_variateurs_w" not in st.session_state:
-    st.session_state.pertes_variateurs_w = 0.0
 
 if "apports_batiment_w" not in st.session_state:
     st.session_state.apports_batiment_w = 0.0
 
 if "bilan" not in st.session_state:
     st.session_state.bilan = {}
-
 # ----------------------------------------------------
 # INITIALISATION DE LA BASE DE DONNÉES
 # ----------------------------------------------------
@@ -230,19 +267,6 @@ db_mgr = DatabaseManager()
 # ----------------------------------------------------
 
 menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
-
-# ----------------------------------------------------
-# Fonctions de calcul ajoutées 
-# ----------------------------------------------------
-
-from disjoncteurs import BreakerCalculator
-from variateurs import VFDCalculator
-
-def compute_breaker_effective_loss(p_nom_w, charge_pct):
-    return BreakerCalculator.effective_loss(p_nom_w, charge_pct)
-
-def compute_vfd_effective_loss(p_nom_w, charge_pct):
-    return VFDCalculator.effective_loss(p_nom_w, charge_pct)
 
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
@@ -291,7 +315,7 @@ if menu == "Projet":
     st.markdown("---")
     st.subheader("📋 Aperçu du Rapport")
     st.markdown(f"""
-        <div style="background-color: #162032; border: 1px solid #1E293B; border-radius: 8px; padding: 20px;">
+        <div style="background-color: var(--background-color, #162032); border: 1px solid #1E293B; border-radius: 8px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #3182CE; padding-bottom: 10px; margin-bottom: 15px;">
                 <span style="font-weight: 700; font-size: 18px; color: #FFFFFF;">PROJET : {st.session_state.project.get('nom', 'N/A')}</span>
                 <span style="background-color: #3182CE; color: white; padding: 2px 10px; border-radius: 4px; font-weight: 600; font-size: 13px;">{st.session_state.project.get('statut', 'APS')}</span>
@@ -310,7 +334,7 @@ if menu == "Projet":
 # ----------------------------------------------------
 # PAGE : TGBT
 # ----------------------------------------------------
-    elif menu == "TGBT":
+elif menu == "TGBT":
     st.title("📊 Gestion du TGBT (Tableau Général Basse Tension)")
     st.caption("Composez votre TGBT en ajoutant ses composants. Les dissipations thermiques seront automatiquement sommées pour le bilan thermique.")
     st.markdown("---")
@@ -888,104 +912,184 @@ elif menu == "Bilan Thermique":
 # ----------------------------------------------------
 # PAGE : Rapport PDF
 # ----------------------------------------------------
-
 elif menu == "Rapport":
     st.title("📄 Génération du Rapport")
     st.caption("Téléchargez le bilan complet au format PDF.")
 
-    # Vérifier que le bilan est disponible
-    if not st.session_state.get("bilan") or "total_equipements" not in st.session_state.bilan:
+    # ------------------------------------------------------------
+    # 1. Vérifier que le bilan thermique a été calculé
+    # ------------------------------------------------------------
+    bilan_disponible = (
+        "bilan" in st.session_state 
+        and st.session_state.bilan 
+        and "total_equipements" in st.session_state.bilan
+    )
+
+    if not bilan_disponible:
         st.warning("⚠️ Le bilan thermique n'a pas encore été calculé.")
-        st.info("Veuillez d'abord consulter la page **Bilan Thermique** pour calculer le bilan.")
-        
-        if st.button("Calculer le bilan maintenant"):
+        st.info("Veuillez d'abord consulter la page **Bilan Thermique** et cliquer sur 'Calculer le Bilan Thermique'.")
+
+        # Bouton de calcul rapide (utilise les nouvelles variables)
+        if st.button("🔄 Calculer le bilan maintenant", type="primary"):
             pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
-            pertes_disj = st.session_state.get("pertes_disjoncteurs_w", 0.0)
-            pertes_vfd = st.session_state.get("pertes_variateurs_w", 0.0)
+            pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
+            pertes_armoires_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
             apports_bat = st.session_state.get("apports_batiment_w", 0.0)
-            
-            if pertes_armoires == 0 and pertes_disj == 0 and pertes_vfd == 0 and apports_bat == 0:
-                st.error("Aucune donnée disponible. Veuillez configurer les équipements et le local.")
+
+            total_equip = pertes_armoires + pertes_tgbt + pertes_armoires_aux
+            total_global = total_equip + apports_bat
+
+            if total_global == 0:
+                st.error("❌ Aucune donnée disponible. Veuillez configurer les équipements et le local.")
             else:
-                engine = ThermalEngine(safety_margin=0.10)
-                total_equip = pertes_armoires + pertes_disj + pertes_vfd
-                result = engine.compute_total(total_equip, apports_bat)
+                # Calcul simplifié (sans l'engine complet)
+                marge = 0.10  # 10% de marge
+                total_design = total_global * (1 + marge)
+                
                 st.session_state.bilan = {
                     "total_equipements": total_equip,
                     "apports_batiment": apports_bat,
-                    "margin_pct": 10,
-                    "units": result["units"]
+                    "margin_pct": int(marge * 100),
+                    "units": {
+                        "kw": round(total_design / 1000, 2),
+                        "btu_h": round(total_design * 3.412142, 2),
+                        "tr": round(total_design / 3516.85, 2)
+                    }
                 }
-                st.success("Bilan calculé avec succès ! Vous pouvez maintenant générer le PDF.")
+                st.success("✅ Bilan calculé avec succès ! Vous pouvez maintenant générer le PDF.")
                 st.rerun()
-    else:
-        # Données disponibles
-        project_data = st.session_state.project
-        building_data = st.session_state.local
-        armoires_data = st.session_state.get("config_armoires", {"nb": 0, "pertes_totales": 0})
-        disjoncteurs_data = st.session_state.get("config_disjoncteurs", [])
-        variateurs_data = st.session_state.get("config_variateurs", [])
-        bilan_data = st.session_state.bilan
 
-        # Aperçu 
-        st.subheader("Aperçu du rapport")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Projet", project_data.get("nom", "N/A"))
-        col2.metric("Client", project_data.get("client", "N/A"))
-        col3.metric("Ingénieur", project_data.get("ingenieur", "N/A"))
-        st.caption(f"T_ext : {project_data.get('t_ext', 0)} °C | T_int : {project_data.get('t_int', 0)} °C")
+        st.stop()  # Arrêter l'exécution ici si le bilan n'est pas disponible
 
-        with st.expander("Détail des équipements configurés", expanded=False):
-            st.write("**Armoires A :**", armoires_data.get("nb", 0), "unités, pertes totales :", f"{armoires_data.get('pertes_totales', 0):.0f} W")
-            if disjoncteurs_data:
-                st.write("**Disjoncteurs :**")
-                st.dataframe(pd.DataFrame(disjoncteurs_data), use_container_width=True)
-            else:
-                st.write("Aucun disjoncteur configuré.")
-            if variateurs_data:
-                st.write("**Variateurs :**")
-                st.dataframe(pd.DataFrame(variateurs_data), use_container_width=True)
-            else:
-                st.write("Aucun variateur configuré.")
+    # ------------------------------------------------------------
+    # 2. Données disponibles → Affichage du rapport
+    # ------------------------------------------------------------
+    project_data = st.session_state.project
+    building_data = st.session_state.local
+    bilan_data = st.session_state.bilan
 
-        st.markdown("---")
-        st.subheader("Résumé du bilan")
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Pertes équipements", f"{bilan_data['total_equipements']:.0f} W", f"{bilan_data['total_equipements']/1000:.2f} kW")
-        col2.metric("Apports bâtiment", f"{bilan_data['apports_batiment']:.0f} W", f"{bilan_data['apports_batiment']/1000:.2f} kW")
-        col3.metric("Puissance HVAC", f"{bilan_data['units']['kw']:.2f} kW")
-        col4.metric("Capacité recommandée", f"{bilan_data['units']['tr']:.2f} TR")
+    # --- Récupération des données structurées ---
+    armoire_a_quantite = st.session_state.get("armoire_a_quantite", 0)
+    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
 
-        st.divider()
+    tgbt_components = st.session_state.get("tgbt_components", [])
+    pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
 
-        if st.button("Générer et télécharger le PDF", use_container_width=True):
-            output_dir = "reports"
-            if os.path.exists(output_dir) and not os.path.isdir(output_dir):
-                os.remove(output_dir)
-            os.makedirs(output_dir, exist_ok=True)
+    aux_components = st.session_state.get("armoires_aux_components", [])
+    aux_quantite = st.session_state.get("armoires_aux_quantite", 0)
+    pertes_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
 
-            clean_name = "".join(c for c in project_data["nom"] if c.isalnum() or c in (" ", "_")).rstrip()
-            pdf_path = os.path.join(output_dir, f"Bilan_{clean_name.replace(' ', '_')}.pdf")
+    # --- Aperçu du rapport ---
+    st.subheader("📋 Aperçu du rapport")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Projet", project_data.get("nom", "N/A"))
+    col2.metric("Client", project_data.get("client", "N/A"))
+    col3.metric("Ingénieur", project_data.get("ingenieur", "N/A"))
+    st.caption(f"T_ext : {project_data.get('t_ext', 0)} °C | T_int : {project_data.get('t_int', 0)} °C")
 
-            try:
-                PDFReportGenerator.generate(
-                    pdf_path,          # filename (positionnel)
-                    project_data,      # project
-                    building_data,     # building
-                    armoires_data,     # armoires
-                    disjoncteurs_data, # disjoncteurs
-                    variateurs_data,   # variateurs
-                    bilan_data         # bilan
+    # --- Détail des équipements configurés ---
+    with st.expander("Détail des équipements configurés", expanded=False):
+        # Armoires A
+        st.write(f"**Armoires A :** {armoire_a_quantite} unité(s), pertes totales : **{pertes_armoires:.0f} W** ({pertes_armoires/1000:.2f} kW)")
+        
+        # TGBT
+        if tgbt_components:
+            st.write("**TGBT :**")
+            df_tgbt = pd.DataFrame(tgbt_components)
+            df_tgbt_display = df_tgbt.rename(columns={
+                "nom": "Composant",
+                "puissance_unitaire": "Puissance (W)",
+                "quantite": "Qté",
+                "total": "Total (W)"
+            })
+            st.dataframe(df_tgbt_display, use_container_width=True, hide_index=True)
+            st.write(f"**Pertes totales TGBT :** {pertes_tgbt:.0f} W ({pertes_tgbt/1000:.2f} kW)")
+        else:
+            st.write("**TGBT :** Aucun composant configuré.")
+
+        # Armoires Auxiliaires
+        if aux_components:
+            st.write(f"**Armoires Auxiliaires :** {aux_quantite} unité(s) identique(s)")
+            df_aux = pd.DataFrame(aux_components)
+            df_aux_display = df_aux.rename(columns={
+                "nom": "Composant",
+                "puissance_unitaire": "Puissance (W)",
+                "quantite": "Qté",
+                "total": "Total (W)"
+            })
+            st.dataframe(df_aux_display, use_container_width=True, hide_index=True)
+            st.write(f"**Pertes totales Auxiliaires :** {pertes_aux:.0f} W ({pertes_aux/1000:.2f} kW)")
+        else:
+            st.write("**Armoires Auxiliaires :** Aucune configurée.")
+
+    # --- Résumé du bilan ---
+    st.markdown("---")
+    st.subheader("Résumé du bilan thermique")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Pertes équipements", f"{bilan_data['total_equipements']:.0f} W", f"{bilan_data['total_equipements']/1000:.2f} kW")
+    col2.metric("Apports bâtiment", f"{bilan_data['apports_batiment']:.0f} W", f"{bilan_data['apports_batiment']/1000:.2f} kW")
+    col3.metric("Puissance HVAC", f"{bilan_data['units']['kw']:.2f} kW")
+    col4.metric("Capacité recommandée", f"{bilan_data['units']['tr']:.2f} TR")
+
+    st.divider()
+
+    # --- Génération du PDF ---
+    if st.button("📄 Générer et télécharger le PDF", use_container_width=True, type="primary"):
+        output_dir = "reports"
+        os.makedirs(output_dir, exist_ok=True)
+
+        clean_name = "".join(c for c in project_data.get("nom", "Projet") if c.isalnum() or c in (" ", "_")).rstrip()
+        pdf_path = os.path.join(output_dir, f"Bilan_{clean_name.replace(' ', '_')}.pdf")
+
+        # Construction des données pour le PDF (compatible avec l'ancienne interface)
+        # On adapte les nouvelles données au format attendu par PDFReportGenerator
+        armoires_data = {
+            "nb": armoire_a_quantite,
+            "pertes_totales": pertes_armoires
+        }
+
+        # On reconstruit une liste de disjoncteurs à partir des TGBT
+        disjoncteurs_data = []
+        for comp in tgbt_components:
+            if "disjoncteur" in comp["nom"].lower() or "sectionneur" in comp["nom"].lower():
+                disjoncteurs_data.append({
+                    "nom": comp["nom"],
+                    "puissance": comp["puissance_unitaire"],
+                    "quantite": comp["quantite"],
+                    "total": comp["total"]
+                })
+
+        # On reconstruit une liste de variateurs à partir des TGBT
+        variateurs_data = []
+        for comp in tgbt_components:
+            if "contacteur" in comp["nom"].lower() or "variateurs" in comp["nom"].lower():
+                variateurs_data.append({
+                    "nom": comp["nom"],
+                    "puissance": comp["puissance_unitaire"],
+                    "quantite": comp["quantite"],
+                    "total": comp["total"]
+                })
+
+        try:
+            # Appel au générateur de PDF
+            PDFReportGenerator.generate(
+                pdf_path,
+                project_data,
+                building_data,
+                armoires_data,
+                disjoncteurs_data,
+                variateurs_data,
+                bilan_data
+            )
+
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    label="💾 Télécharger le PDF",
+                    data=f,
+                    file_name=os.path.basename(pdf_path),
+                    mime="application/pdf",
+                    use_container_width=True,
                 )
-                with open(pdf_path, "rb") as f:
-                    st.download_button(
-                        label="💾 Télécharger le PDF",
-                        data=f,
-                        file_name=os.path.basename(pdf_path),
-                        mime="application/pdf",
-                        use_container_width=True,
-                    )
-                st.success(f"PDF généré avec succès : {os.path.basename(pdf_path)}")
-            except Exception as e:
-                st.error(f"Erreur lors de la génération du PDF : {e}")
-    
+            st.success(f"✅ PDF généré avec succès : {os.path.basename(pdf_path)}")
+        except Exception as e:
+            st.error(f"❌ Erreur lors de la génération du PDF : {e}")
