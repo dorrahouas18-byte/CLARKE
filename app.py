@@ -481,52 +481,74 @@ elif menu == "Armoire Auxiliaire":
     # --- 1. Sélection de la quantité (multiplicateur) ---
     col_qty, _ = st.columns([1, 2])
     with col_qty:
-        quantite = st.number_input("Nombre d'armoires auxiliaires identiques", min_value=1, step=1, value=st.session_state.armoires_aux_quantite)
+        quantite = st.number_input(
+            "Nombre d'armoires auxiliaires identiques",
+            min_value=1,
+            step=1,
+            value=st.session_state.armoires_aux_quantite
+        )
         st.session_state.armoires_aux_quantite = quantite
 
     st.markdown("---")
 
-  COMPOSANTS_AUX = {
-    # ====== DISJONCTEURS DE PUISSANCE ======
-    "Disjoncteur général (160A)": 80,
-    "Interrupteur-sectionneur (160A)": 60,
+    # --- 2. Composition libre ---
+    COMPOSANTS_AUX = {
+        # ====== DISJONCTEURS DE PUISSANCE ======
+        "Disjoncteur général (160A)": 80,
+        "Interrupteur-sectionneur (160A)": 60,
 
-    # ====== NOUVEAU : ACTI9 iC60N (modulaires) pour les départs ======
-    # --- 1P+N (230V) : éclairage, prises, alimentations 24V ---
-    "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
-    "Disj. Acti9 iC60N 1P+N 10A (9W)": 9,
-    "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
-    "Disj. Acti9 iC60N 1P+N 20A (12W)": 12,
-    "Disj. Acti9 iC60N 1P+N 25A (14W)": 14,
-    "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
-    "Disj. Acti9 iC60N 1P+N 40A (18W)": 18,
-    "Disj. Acti9 iC60N 1P+N 50A (22W)": 22,
-    "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
+        # ====== ACTI9 iC60N (modulaires) ======
+        "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
+        "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
+        "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
+        "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
+        "Disj. Acti9 iC60N 4P 6A (9W)": 9,
+        "Disj. Acti9 iC60N 4P 16A (12W)": 12,
+        "Disj. Acti9 iC60N 4P 32A (18W)": 18,
+        "Disj. Acti9 iC60N 4P 63A (28W)": 28,
 
-    # --- 4P (400V) : petits moteurs triphasés, pompes, ventilateurs ---
-    "Disj. Acti9 iC60N 4P 6A (9W)": 9,
-    "Disj. Acti9 iC60N 4P 10A (10W)": 10,
-    "Disj. Acti9 iC60N 4P 16A (12W)": 12,
-    "Disj. Acti9 iC60N 4P 20A (14W)": 14,
-    "Disj. Acti9 iC60N 4P 25A (16W)": 16,
-    "Disj. Acti9 iC60N 4P 32A (18W)": 18,
-    "Disj. Acti9 iC60N 4P 40A (22W)": 22,
-    "Disj. Acti9 iC60N 4P 50A (25W)": 25,
-    "Disj. Acti9 iC60N 4P 63A (28W)": 28,
+        # ====== CONTACTEURS ======
+        "Contacteur (puissance)": 50,
+        "Contacteur (auxiliaire)": 20,
 
-    # ====== CONTACTEURS ======
-    "Contacteur (puissance)": 50,
-    "Contacteur (auxiliaire)": 20,
+        # ====== JEUX DE BARRES ======
+        "Jeu de barres - 160A (~10 W/m)": 10,
 
-    # ====== JEUX DE BARRES ======
-    "Jeu de barres - 160A (~10 W/m)": 10,
+        # ====== ACCESSOIRES ======
+        "Bornier de raccordement (jeu)": 10,
+        "Ventilateur d'armoire (230V)": 30,
+        "Alimentation 24VDC": 25,
+        "Coffret vide (enveloppe)": 50
+    }
 
-    # ====== ACCESSOIRES ======
-    "Bornier de raccordement (jeu)": 10,
-    "Ventilateur d'armoire (230V)": 30,
-    "Alimentation 24VDC": 25,
-    "Coffret vide (enveloppe)": 50
-}
+    with st.form(key="add_aux_form", clear_on_submit=True):
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            composant_choisi = st.selectbox(
+                "Sélectionnez un composant",
+                list(COMPOSANTS_AUX.keys())
+            )
+            puissance_unitaire = COMPOSANTS_AUX[composant_choisi]
+            st.caption(f"⚡ Dissipation : **{puissance_unitaire} W**")
+        with col2:
+            qte_composant = st.number_input("Qté", min_value=1, step=1, value=1)
+        with col3:
+            total_ligne = puissance_unitaire * qte_composant
+            st.metric("Total", f"{total_ligne} W")
+
+        submitted = st.form_submit_button("➕ Ajouter ce composant", type="primary")
+        if submitted:
+            st.session_state.armoires_aux_components.append({
+                "nom": composant_choisi,
+                "puissance_unitaire": puissance_unitaire,
+                "quantite": qte_composant,
+                "total": total_ligne
+            })
+            st.success("Ajouté !")
+            st.rerun()
+
+    st.markdown("---")
+
     # --- 3. Affichage de la composition de l'armoire type ---
     if st.session_state.armoires_aux_components:
         df = pd.DataFrame(st.session_state.armoires_aux_components)
@@ -540,14 +562,15 @@ elif menu == "Armoire Auxiliaire":
         st.dataframe(df_display, use_container_width=True, hide_index=True)
 
         total_type = df["total"].sum()
-        
-        # Calcul du total multiplié par la quantité
         total_general = total_type * st.session_state.armoires_aux_quantite
         st.session_state.pertes_armoires_aux_w = total_general
 
         st.metric("Puissance pour 1 armoire type", f"{total_type:.0f} W")
-        st.metric("Puissance totale (x{})".format(st.session_state.armoires_aux_quantite), 
-                  f"{total_general:.0f} W", delta=f"{total_general/1000:.2f} kW")
+        st.metric(
+            "Puissance totale (x{})".format(st.session_state.armoires_aux_quantite),
+            f"{total_general:.0f} W",
+            delta=f"{total_general/1000:.2f} kW"
+        )
 
         if st.button("🗑️ Réinitialiser la composition type", type="secondary"):
             st.session_state.armoires_aux_components = []
@@ -605,11 +628,11 @@ elif menu == "Local":
         surface = length * width
         if surface > 0:
             densite_equivalente = total_lighting_w / surface
-            st.caption(f"💡 **Puissance d'éclairage totale :** {total_lighting_w:.1f} W (soit {densite_equivalente:.1f} W/m²)")
+            st.caption(f"**Puissance d'éclairage totale :** {total_lighting_w:.1f} W (soit {densite_equivalente:.1f} W/m²)")
         else:
-            st.caption("💡 Puissance d'éclairage totale : 0 W")
+            st.caption("Puissance d'éclairage totale : 0 W")
 
-        st.caption("📌 **Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
+        st.caption("**Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
         
         submit_local = st.form_submit_button("💾 Enregistrer & Calculer les apports")
 
@@ -669,7 +692,7 @@ elif menu == "Local":
     col3.metric("Ventilation / Infiltration", f"{details['ventilation_w']:.1f} W", f"{details['ventilation_w']/1000:.2f} kW")
     col4.metric("Total local", f"{total_bat:.1f} W", f"{total_bat/1000:.2f} kW", delta_color="inverse")
 
-    # --- Affichage détaillé de l'éclairage (réel) ---
+    # --- Affichage détaillé de l'éclairage ---
     st.caption(f"Détail éclairage : **{nb_luminaires}** luminaire(s) × **{puissance_luminaire:.0f}** W = **{total_lighting_w:.1f} W**")
 
     # Graphique de répartition----
