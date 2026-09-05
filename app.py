@@ -318,7 +318,7 @@ if menu == "Projet":
 # PAGE : TGBT
 # ----------------------------------------------------
 elif menu == "TGBT":
-    st.title("📊 Gestion du TGBT (Tableau Général Basse Tension)")
+    st.title("Gestion du TGBT (Tableau Général Basse Tension)")
     st.caption("Composez votre TGBT en ajoutant ses composants. Les dissipations thermiques seront automatiquement sommées pour le bilan thermique.")
     st.markdown("---")
 
@@ -330,38 +330,50 @@ elif menu == "TGBT":
 
     # Base de données des composants (avec les jeux de barres calibrés)
     COMPOSANTS_TGBT = {
-        # Jeux de barres (Pertes par mètre, cuivre: loi de joule)
-        "Jeu de barres - 250A (~20 W/m)": 20,
-        "Jeu de barres - 400A (~40 W/m)": 40,
-        "Jeu de barres - 630A (~80 W/m)": 80,
-        "Jeu de barres - 1000A (~150 W/m)": 150,
-        "Jeu de barres - 1250A (~200 W/m)": 200,
-        "Jeu de barres - 1600A (~300 W/m)": 300,
-        "Jeu de barres - 2000A (~450 W/m)": 450,
-        "Jeu de barres - 2500A (~650 W/m)": 650,
-        "Jeu de barres - 3200A (~900 W/m)": 900,   
-        "Jeu de barres - 4000A (~1300 W/m)": 1300,
-        # Disjoncteurs (pertes: loi de joule)
-        "Disjoncteur de branchement (630A)": 220,
-        "Disjoncteur de branchement (400A)": 150,
-        "Disjoncteur général (250A)": 120,
-        "Disjoncteur divisionnaire (63A)": 25,
-        "Disjoncteur divisionnaire (32A)": 15,
-        "Disjoncteur divisionnaire (16A)": 10,
-        "Interrupteur-sectionneur (630A)": 100,
-        # Contacteurs / Variateurs
-        "Contacteur (puissance)": 50,
-        "Contacteur (auxiliaire)": 20,
-        # Autres
-        "Parafoudre (type 1+2)": 15,
-        "Transformateur de courant (TC)": 5,
-        "Compteur / Analyseur": 15,
-        "Bornier de raccordement (jeu)": 10,
-        "Ventilateur d'armoire (230V)": 30,
-        "Alimentation 24VDC": 25,
-        "Coffret vide (enveloppe)": 50
-    }
+    # Jeux de barres (Pertes par mètre, cuivre: loi de joule)
+    "Jeu de barres - 250A": 20,
+    "Jeu de barres - 400A": 40,
+    "Jeu de barres - 630A": 80,
+    "Jeu de barres - 1000A": 150,
+    "Jeu de barres - 1250A": 200,
+    "Jeu de barres - 1600A": 300,
+    "Jeu de barres - 2000A": 450,
+    "Jeu de barres - 2500A": 650,
+    "Jeu de barres - 3200A": 900,   
+    "Jeu de barres - 4000A": 1300,
 
+    # Disjoncteurs (pertes: loi de joule)
+    "Disjoncteur de branchement (630A)": 220,
+    "Disjoncteur de branchement (400A)": 150,
+    "Disjoncteur général (250A)": 120,
+    "Disjoncteur divisionnaire (63A)": 25,
+    "Disjoncteur divisionnaire (32A)": 15,
+    "Disjoncteur divisionnaire (16A)": 10,
+    "Interrupteur-sectionneur (630A)": 100,
+
+    # --- Acti9 iC60N (modulaires) pour petits départs ---
+    "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
+    "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
+    "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
+    "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
+    "Disj. Acti9 iC60N 4P 6A (9W)": 9,
+    "Disj. Acti9 iC60N 4P 16A (12W)": 12,
+    "Disj. Acti9 iC60N 4P 32A (18W)": 18,
+    "Disj. Acti9 iC60N 4P 63A (28W)": 28,
+
+    # Contacteurs / Variateurs
+    "Contacteur (puissance)": 50,
+    "Contacteur (auxiliaire)": 20,
+
+    # Autres
+    "Parafoudre (type 1+2)": 15,
+    "Transformateur de courant (TC)": 5,
+    "Compteur / Analyseur": 15,
+    "Bornier de raccordement (jeu)": 10,
+    "Ventilateur d'armoire (230V)": 30,
+    "Alimentation 24VDC": 25,
+    "Coffret vide (enveloppe)": 50
+    }
     # --- Formulaire d'ajout ---
     with st.form(key="add_tgbt_form", clear_on_submit=True):
         col1, col2, col3 = st.columns([2, 1, 1])
