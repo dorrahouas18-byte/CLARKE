@@ -606,7 +606,36 @@ elif menu == "Bilan Thermique":
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
     st.markdown("---")
 
-    # --- 1. Récupération des données depuis les autres pages ---
+    # ------------------------------------------------------------
+    # 1. INITIALIZE SESSION STATE FOR RESULTS (default = 0 / empty)
+    # ------------------------------------------------------------
+    if 'bilan_results' not in st.session_state:
+        st.session_state.bilan_results = {
+            'q_equipements': 0.0,
+            'q_eclairage': 0.0,
+            'q_interne': 0.0,
+            'q_transmission': 0.0,
+            'q_ventilation': 0.0,
+            'q_enveloppe': 0.0,
+            'q_totale_brut': 0.0,
+            'q_totale_design': 0.0,
+            'puissance_kw': 0.0,
+            'puissance_btu': 0.0,
+            'puissance_tr': 0.0,
+            'debit_air': 0.0,
+            'marge_pourcent': 15,
+            'q_interne_display': 0.0,
+            'q_enveloppe_display': 0.0,
+            # for pie chart
+            'pie_data': pd.DataFrame(),
+            # for sensitivity line
+            'sens_data': pd.DataFrame()
+        }
+        st.session_state.bilan_computed = False
+
+    # ------------------------------------------------------------
+    # 2. READ INPUTS FROM SESSION STATE (always available)
+    # ------------------------------------------------------------
     # Pertes des équipements
     pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
     pertes_disj = st.session_state.get("pertes_disjoncteurs_w", 0.0)
@@ -621,155 +650,202 @@ elif menu == "Bilan Thermique":
     roof_type = local_data.get("roof_type", "Toiture sandwich isolée")
     lighting_w_m2 = local_data.get("lighting_w_m2", 0.0)
     ach = local_data.get("ach", 0.0)
-    
+
     # Données du projet (températures)
     project_data = st.session_state.get("project", {})
     t_ext = project_data.get("t_ext", 35.0)
     t_int = project_data.get("t_int", 22.0)
     delta_t = max(0.0, t_ext - t_int)
 
-    # --- 2. Calculs Scientifiques ---
-    # 2.1 Apports Internes (Q_interne)
-    q_equipements = pertes_armoires + pertes_disj + pertes_vfd
-    surface = length * width
-    q_eclairage = lighting_w_m2 * surface
-    q_interne = q_equipements + q_eclairage  # plus q_occupants
+    # ------------------------------------------------------------
+    # 3. BUTTON TO TRIGGER CALCULATION
+    # ------------------------------------------------------------
+    if st.button("🔄 Calculer le Bilan Thermique", type="primary"):
+        # ---- Run all calculations ----
+        # 3.1 Apports Internes
+        q_equipements = pertes_armoires + pertes_disj + pertes_vfd
+        surface = length * width
+        q_eclairage = lighting_w_m2 * surface
+        q_interne = q_equipements + q_eclairage
 
-    # 2.2 Apports par l'Enveloppe (Q_enveloppe)
-    from local import BuildingThermalCalculator
-    u_wall = BuildingThermalCalculator.U_VALUES.get(wall_type, 0.5)
-    u_roof = BuildingThermalCalculator.U_VALUES.get(roof_type, 0.35)
+        # 3.2 Apports par l'Enveloppe
+        from local import BuildingThermalCalculator
+        u_wall = BuildingThermalCalculator.U_VALUES.get(wall_type, 0.5)
+        u_roof = BuildingThermalCalculator.U_VALUES.get(roof_type, 0.35)
 
-    surface_murs = 2 * (length + width) * height
-    surface_toit = surface
-    q_murs = u_wall * surface_murs * delta_t
-    q_toit = u_roof * surface_toit * delta_t
-    q_transmission = q_murs + q_toit
+        surface_murs = 2 * (length + width) * height
+        surface_toit = surface
+        q_murs = u_wall * surface_murs * delta_t
+        q_toit = u_roof * surface_toit * delta_t
+        q_transmission = q_murs + q_toit
 
-    volume = surface * height
-    debit_air = volume * ach
-    q_ventilation = 0.34 * debit_air * delta_t
-    q_enveloppe = q_transmission + q_ventilation
+        volume = surface * height
+        debit_air = volume * ach
+        q_ventilation = 0.34 * debit_air * delta_t
+        q_enveloppe = q_transmission + q_ventilation
 
-    # 2.3 Calcul du Besoin de Refroidissement
-    q_totale_brut = q_interne + q_enveloppe
-    marge_pourcent = 15
-    facteur_marge = 1 + (marge_pourcent / 100.0)
-    q_totale_design = q_totale_brut * facteur_marge
+        # 3.3 Besoin de refroidissement
+        q_totale_brut = q_interne + q_enveloppe
+        marge_pourcent = 15
+        facteur_marge = 1 + (marge_pourcent / 100.0)
+        q_totale_design = q_totale_brut * facteur_marge
 
-    # --- 3. Stockage des résultats pour le Rapport ---
-    st.session_state.bilan = {
-        "total_equipements": q_equipements,
-        "apports_batiment": q_enveloppe,
-        "margin_pct": marge_pourcent,
-        "units": {
-            "kw": round(q_totale_design / 1000, 2),
-            "btu_h": round(q_totale_design * 3.412142, 2),
-            "tr": round(q_totale_design / 3516.85, 2)
-        }
-    }
+        # 3.4 Unités
+        puissance_kw = q_totale_design / 1000
+        puissance_btu = q_totale_design * 3.412142
+        puissance_tr = q_totale_design / 3516.85
+        debit_air_estime = q_totale_design / (0.34 * delta_t) if delta_t > 0 else 0.0
 
-    # --- 4. Affichage des Résultats ---
-    st.subheader("Synthèse du Bilan de Puissance")
+        # ---- Store results in session_state ----
+        st.session_state.bilan_results.update({
+            'q_equipements': q_equipements,
+            'q_eclairage': q_eclairage,
+            'q_interne': q_interne,
+            'q_transmission': q_transmission,
+            'q_ventilation': q_ventilation,
+            'q_enveloppe': q_enveloppe,
+            'q_totale_brut': q_totale_brut,
+            'q_totale_design': q_totale_design,
+            'puissance_kw': puissance_kw,
+            'puissance_btu': puissance_btu,
+            'puissance_tr': puissance_tr,
+            'debit_air': debit_air_estime,
+            'marge_pourcent': marge_pourcent,
+            'q_interne_display': q_interne,
+            'q_enveloppe_display': q_enveloppe,
+        })
 
-    puissance_kw = q_totale_design / 1000
-    puissance_btu = q_totale_design * 3.412142
-    puissance_tr = q_totale_design / 3516.85
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric(
-        label="Puissance Frigorifique Nécessaire",
-        value=f"{puissance_btu:.0f} BTU/h",
-        delta=f"{puissance_kw:.2f} kW"
-    )
-    col2.metric(
-        label="Capacité Recommandée",
-        value=f"{puissance_tr:.2f} TR",
-        delta=f"{marge_pourcent}% de marge"
-    )
-    col3.metric(
-        label="Équivalent en kW",
-        value=f"{puissance_kw:.2f} kW"
-    )
-    col4.metric(
-        label="Débit d'Air Estimé",
-        value=f"{q_totale_design / (0.34 * delta_t):.0f} m³/h" if delta_t > 0 else "N/A",
-        help="Basé sur un écart de température de 10°C à la soufflante"
-    )
-
-    st.markdown("---")
-
-    # --- 5. Détail des Calculs ---
-    st.subheader("Détail des Apports Thermiques")
-
-    col_left, col_right = st.columns([1, 1.5])
-    with col_left:
-        st.caption("**Apports Internes (Équipements, éclairage)**")
-        st.write(f"- 🖥️ Équipements électriques : **{q_equipements:.0f} W**")
-        st.write(f"- 💡 Éclairage : **{q_eclairage:.0f} W**")
-        st.write(f"**Total Interne : {q_interne:.0f} W**")
-
-        st.caption("**Apports par l'Enveloppe (Bâtiment)**")
-        st.write(f"- 🧱 Murs & Toit : **{q_transmission:.0f} W**")
-        st.write(f"- 🌬️ Renouvellement d'air : **{q_ventilation:.0f} W**")
-        st.write(f"**Total Enveloppe : {q_enveloppe:.0f} W**")
-
-        st.divider()
-        st.metric("**Charge Thermique Totale (Brute)**", f"{q_totale_brut/1000:.2f} kW")
-        st.metric(f"**Charge avec marge ({marge_pourcent}%)**", f"{q_totale_design/1000:.2f} kW")
-
-    with col_right:
-        # Graphique 1 : Origine des apports (Camembert) - sans occupants
+        # ---- Pie chart data ----
         df_pie = pd.DataFrame({
             "Source": ["Équipements", "Enveloppe", "Éclairage"],
             "Watts": [q_equipements, q_enveloppe, q_eclairage]
         })
         df_pie = df_pie[df_pie["Watts"] > 0]
+        st.session_state.bilan_results['pie_data'] = df_pie
 
-        if not df_pie.empty:
-            fig_pie = px.pie(
-                df_pie,
-                values="Watts",
-                names="Source",
-                title="Répartition des Apports Thermiques",
-                hole=0.4,
-                color_discrete_sequence=px.colors.sequential.Blues_r
-            )
-            fig_pie.update_layout(margin=dict(t=40, b=20, l=10, r=10))
-            st.plotly_chart(fig_pie, use_container_width=True)
+        # ---- Sensitivity data ----
+        plage_temp = list(range(25, 51, 5))
+        puissances = []
+        for t in plage_temp:
+            delta_t_sim = max(0.0, t - t_int)
+            q_murs_sim = u_wall * surface_murs * delta_t_sim
+            q_toit_sim = u_roof * surface_toit * delta_t_sim
+            q_transmission_sim = q_murs_sim + q_toit_sim
+            q_ventilation_sim = 0.34 * debit_air * delta_t_sim
+            q_enveloppe_sim = q_transmission_sim + q_ventilation_sim
+            q_totale_sim = (q_interne + q_enveloppe_sim) * facteur_marge
+            puissances.append(q_totale_sim / 1000)
+        df_sens = pd.DataFrame({"Température Extérieure (°C)": plage_temp, "Puissance AC (kW)": puissances})
+        st.session_state.bilan_results['sens_data'] = df_sens
+
+        st.session_state.bilan_computed = True
+
+    # ------------------------------------------------------------
+    # 4. DISPLAY RESULTS (ZERO BY DEFAULT)
+    # ------------------------------------------------------------
+    results = st.session_state.bilan_results
+    computed = st.session_state.bilan_computed
+
+    # ---- Display metrics ----
+    st.subheader("Synthèse du Bilan de Puissance")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric(
+        label="Puissance Frigorifique Nécessaire",
+        value=f"{results['puissance_btu']:.0f} BTU/h" if computed else "0 BTU/h",
+        delta=f"{results['puissance_kw']:.2f} kW" if computed else "0.00 kW"
+    )
+    col2.metric(
+        label="Capacité Recommandée",
+        value=f"{results['puissance_tr']:.2f} TR" if computed else "0.00 TR",
+        delta=f"{results['marge_pourcent']}% de marge" if computed else "0% de marge"
+    )
+    col3.metric(
+        label="Équivalent en kW",
+        value=f"{results['puissance_kw']:.2f} kW" if computed else "0.00 kW"
+    )
+    col4.metric(
+        label="Débit d'Air Estimé",
+        value=f"{results['debit_air']:.0f} m³/h" if computed and results['debit_air'] > 0 else "N/A",
+        help="Basé sur un écart de température de 10°C à la soufflante"
+    )
 
     st.markdown("---")
 
-    # --- 6. Graphique de Sensibilité ---
+    # ---- Detail of thermal loads ----
+    st.subheader("Détail des Apports Thermiques")
+    col_left, col_right = st.columns([1, 1.5])
+
+    with col_left:
+        st.caption("**Apports Internes (Équipements, éclairage)**")
+        if computed:
+            st.write(f"- 🖥️ Équipements électriques : **{results['q_equipements']:.0f} W**")
+            st.write(f"- 💡 Éclairage : **{results['q_eclairage']:.0f} W**")
+            st.write(f"**Total Interne : {results['q_interne']:.0f} W**")
+        else:
+            st.write("- 🖥️ Équipements électriques : **0 W**")
+            st.write("- 💡 Éclairage : **0 W**")
+            st.write("**Total Interne : 0 W**")
+
+        st.caption("**Apports par l'Enveloppe (Bâtiment)**")
+        if computed:
+            st.write(f"- 🧱 Murs & Toit : **{results['q_transmission']:.0f} W**")
+            st.write(f"- 🌬️ Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
+            st.write(f"**Total Enveloppe : {results['q_enveloppe']:.0f} W**")
+        else:
+            st.write("- 🧱 Murs & Toit : **0 W**")
+            st.write("- 🌬️ Renouvellement d'air : **0 W**")
+            st.write("**Total Enveloppe : 0 W**")
+
+        st.divider()
+        if computed:
+            st.metric("**Charge Thermique Totale (Brute)**", f"{results['q_totale_brut']/1000:.2f} kW")
+            st.metric(f"**Charge avec marge ({results['marge_pourcent']}%)**", f"{results['q_totale_design']/1000:.2f} kW")
+        else:
+            st.metric("**Charge Thermique Totale (Brute)**", "0.00 kW")
+            st.metric("**Charge avec marge (15%)**", "0.00 kW")
+
+    with col_right:
+        if computed:
+            df_pie = results['pie_data']
+            if not df_pie.empty:
+                fig_pie = px.pie(
+                    df_pie,
+                    values="Watts",
+                    names="Source",
+                    title="Répartition des Apports Thermiques",
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.sequential.Blues_r
+                )
+                fig_pie.update_layout(margin=dict(t=40, b=20, l=10, r=10))
+                st.plotly_chart(fig_pie, use_container_width=True)
+            else:
+                st.info("Aucun apport positif à afficher.")
+        else:
+            st.info("Cliquez sur 'Calculer le Bilan Thermique' pour voir les graphiques.")
+
+    st.markdown("---")
+
+    # ---- Sensitivity graph ----
     st.subheader("Sensibilité à la Température Extérieure")
     st.caption("Comment la puissance nécessaire du climatiseur évolue avec la chaleur extérieure.")
 
-    plage_temp = list(range(25, 51, 5))
-    puissances = []
-    for t in plage_temp:
-        delta_t_sim = max(0.0, t - t_int)
-        q_murs_sim = u_wall * surface_murs * delta_t_sim
-        q_toit_sim = u_roof * surface_toit * delta_t_sim
-        q_transmission_sim = q_murs_sim + q_toit_sim
-        q_ventilation_sim = 0.34 * debit_air * delta_t_sim
-        q_enveloppe_sim = q_transmission_sim + q_ventilation_sim
-        q_totale_sim = (q_interne + q_enveloppe_sim) * facteur_marge
-        puissances.append(q_totale_sim / 1000)
-
-    df_sens = pd.DataFrame({"Température Extérieure (°C)": plage_temp, "Puissance AC (kW)": puissances})
-    fig_line = px.line(
-        df_sens,
-        x="Température Extérieure (°C)",
-        y="Puissance AC (kW)",
-        markers=True,
-        title="Puissance nécessaire en fonction de la chaleur extérieure"
-    )
-    fig_line.update_traces(line_color='#3182CE', line_width=3, marker_size=10)
-    fig_line.update_layout(
-        xaxis=dict(gridcolor='#E2E8F0'),
-        yaxis=dict(gridcolor='#E2E8F0')
-    )
-    st.plotly_chart(fig_line, use_container_width=True)
+    if computed and not results['sens_data'].empty:
+        df_sens = results['sens_data']
+        fig_line = px.line(
+            df_sens,
+            x="Température Extérieure (°C)",
+            y="Puissance AC (kW)",
+            markers=True,
+            title="Puissance nécessaire en fonction de la chaleur extérieure"
+        )
+        fig_line.update_traces(line_color='#3182CE', line_width=3, marker_size=10)
+        fig_line.update_layout(
+            xaxis=dict(gridcolor='#E2E8F0'),
+            yaxis=dict(gridcolor='#E2E8F0')
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
+    else:
+        st.info("Calculez le bilan pour visualiser la courbe de sensibilité.")
 
 # ----------------------------------------------------
 # PAGE : Rapport PDF
