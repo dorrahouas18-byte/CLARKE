@@ -37,29 +37,29 @@ DEFAULT_DB = {
 }
 
 class DatabaseManager:
-    def __init__(self, filepath="data/database.json"):
-        self.filepath = filepath
-        self._ensure_db()
 
-    def _ensure_db(self):
-        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-        if not os.path.exists(self.filepath):
-            self.save_data(DEFAULT_DB)
-
-    def load_data(self) -> dict:
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def save_data(self, data: dict):
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
-
-    def add_disjoncteur(self, fabricant: str, modele: str, pertes_w: float):
+    def get_unified_catalog(self) -> dict:
         data = self.load_data()
-        data["disjoncteurs"].append({"fabricant": fabricant, "modele": modele, "pertes_w": pertes_w})
-        self.save_data(data)
+        catalog = {}
 
-    def add_variateur(self, code: str, puissance_kw: float, pertes_w: float):
-        data = self.load_data()
-        data["variateurs_danfoss_fc202"].append({"code": code, "puissance_kw": puissance_kw, "pertes_w": pertes_w})
-        self.save_data(data)
+        # 1. Ajout des variateurs Danfoss
+        for v in data.get("variateurs_danfoss_fc202", []):
+            label = f"Variateur Danfoss FC202 - {v['code']} ({v['puissance_kw']} kW)"
+            catalog[label] = v["pertes_w"]
+
+        # 2. Ajout des disjoncteurs (Schneider, ABB, etc.)
+        for d in data.get("disjoncteurs", []):
+            label = f"Disj. {d['fabricant']} - {d['modele']}"
+            catalog[label] = d["pertes_w"]
+
+        # 3. Ajout des jeux de barres
+        for b in data.get("jeux_de_barres", []):
+            label = f"Jeu de barres - {b['courant']}A ({b['pertes_par_metre']} W/m)"
+            catalog[label] = b["pertes_par_metre"]
+
+        # 4. Ajout des accessoires (contacteurs, ventilateurs, etc.)
+        for acc in data.get("accessoires", []):
+            label = f"{acc['nom']} ({acc['pertes_w']} W)"
+            catalog[label] = acc["pertes_w"]
+
+        return catalog
