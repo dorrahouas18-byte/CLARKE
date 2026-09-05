@@ -293,26 +293,6 @@ if menu == "Projet":
         st.session_state.project["t_int"] = t_int
         st.success("Données du projet mises à jour avec succès !")
         st.rerun()
-
-    # Aperçu du cartouche
-    st.markdown("---")
-    st.subheader("📋 Aperçu du Rapport")
-    st.markdown(f"""
-        <div style="background-color: var(--background-color, #162032); border: 1px solid #1E293B; border-radius: 8px; padding: 20px;">
-            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #3182CE; padding-bottom: 10px; margin-bottom: 15px;">
-                <span style="font-weight: 700; font-size: 18px; color: #FFFFFF;">PROJET : {st.session_state.project.get('nom', 'N/A')}</span>
-                <span style="background-color: #3182CE; color: white; padding: 2px 10px; border-radius: 4px; font-weight: 600; font-size: 13px;">{st.session_state.project.get('statut', 'APS')}</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; font-size: 14px;">
-                <div><strong style="color: #A0AEC0;">Client :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('client', 'N/A')}</span></div>
-                <div><strong style="color: #A0AEC0;">N° Affaire :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('reference', 'N/A')}</span></div>
-                <div><strong style="color: #A0AEC0;">Ingénieur BE :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('ingenieur', 'N/A')}</span></div>
-                <div><strong style="color: #A0AEC0;">Date :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('date', datetime.today().strftime('%d/%m/%Y'))}</span></div>
-                <div><strong style="color: #A0AEC0;">T_ext :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('t_ext', 40.0)} °C</span></div>
-                <div><strong style="color: #A0AEC0;">T_int :</strong> <span style="color: #F7FAFC;">{st.session_state.project.get('t_int', 25.0)} °C</span></div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
     
 # ----------------------------------------------------
 # PAGE : TGBT
@@ -380,7 +360,6 @@ elif menu == "TGBT":
         with col1:
             composant_choisi = st.selectbox("Sélectionnez le composant", list(COMPOSANTS_TGBT.keys()))
             puissance_unitaire = COMPOSANTS_TGBT[composant_choisi]
-            st.caption(f"⚡ Dissipation typique : **{puissance_unitaire} W** par unité")
         with col2:
             quantite = st.number_input("Quantité", min_value=1, step=1, value=1)
         with col3:
