@@ -658,7 +658,8 @@ elif menu == "Local":
         nb_luminaires = int(max(1, round(puissance_theorique / PUISSANCE_UNITAIRE)))
         puissance_reelle = nb_luminaires * PUISSANCE_UNITAIRE     # en watts (W)
 
-        # Affichage des résultats (lecture seule)
+        # Affichage des résultats 
+                
         col_a, col_b, col_c = st.columns(3)
         with col_a:
             st.metric("Éclairement requis", f"{ECLAIRAGE_REQUIS:.0f} lux")
@@ -666,11 +667,12 @@ elif menu == "Local":
             st.metric("Flux lumineux total", f"{flux_lumineux_total:.0f} lm")
         with col_c:
             st.metric("Puissance théorique", f"{puissance_theorique:.1f} W")
-
-        st.info(f"**Installation recommandée :** **{nb_luminaires}** luminaire(s) × **{PUISSANCE_UNITAIRE:.0f} W** = **{puissance_reelle:.1f} W** (soit {puissance_reelle/surface:.1f} W/m²)")
-
+        
+       
+        st.caption(f" **Éclairage :** {nb_luminaires} luminaire(s) × {PUISSANCE_UNITAIRE:.0f} W = **{puissance_reelle:.1f} W**")
+        
         st.markdown("---")
-        st.caption("**Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
+        st.caption(" **Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
 
         submit_local = st.form_submit_button("💾 Enregistrer & Calculer les apports")
 
