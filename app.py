@@ -729,7 +729,7 @@ elif menu == "Local":
     col4.metric("Total local", f"{total_bat:.1f} W", f"{total_bat/1000:.2f} kW", delta_color="inverse")
 
     # Détail de l'éclairage
-    st.caption(f"**Éclairage :** {nb_luminaires} luminaire(s) × {puissance_luminaire:.0f} W = **{total_lighting_w:.1f} W**")
+    st.caption(f" **Éclairage :** {nb_luminaires} luminaire(s) x {puissance_luminaire:.0f} W = **{total_lighting_w:.1f} W**")
 
 # ----------------------------------------------------
 # PAGE : Bilan Thermique (synthèse)
