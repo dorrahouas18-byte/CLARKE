@@ -529,7 +529,7 @@ elif menu == "Armoire Auxiliaire":
                 list(COMPOSANTS_AUX.keys())
             )
             puissance_unitaire = COMPOSANTS_AUX[composant_choisi]
-            st.caption(f"⚡ Dissipation : **{puissance_unitaire} W**")
+
         with col2:
             qte_composant = st.number_input("Qté", min_value=1, step=1, value=1)
         with col3:
@@ -585,87 +585,121 @@ elif menu == "Armoire Auxiliaire":
 # ----------------------------------------------------
 elif menu == "Local":
     st.title("Local Électrique & Enveloppe du Bâtiment")
-    st.caption("Définissez les caractéristiques géométriques et la configuration réelle de l'éclairage. Le renouvellement d'air (1.5 vol/h) et les occupants (1) sont fixés.")
+    st.caption("Configurez la géométrie et les parois. L'éclairage est calculé automatiquement selon la norme EN 12464-1.")
     st.markdown("---")
 
-    # --- Initialisation des valeurs d'éclairage si absentes ---
+    # --- Paramètres fixes (scientifiques) ---
+    ECLAIRAGE_REQUIS = 200.0      # en lux (norme EN 12464-1 pour locaux techniques)
+    RENDEMENT_LED = 130.0         # lm/W
+    PUISSANCE_UNITAIRE = 40.0     # W par luminaire (standard LED)
+    ACH = 1.5                     # renouvellements par heure
+    OCCUPANTS = 1                 # personne
+
+    # --- Listes des types de parois adaptées à la Tunisie ---
+    wall_options = [
+        "Parpaing creux non isolé",
+        "Brique creuse non isolée",
+        "Brique creuse + isolation 5cm",
+        "Parpaing + isolation 8cm",
+        "Béton cellulaire 30cm",
+        "Mur haute performance >8cm isolant"
+    ]
+
+    roof_options = [
+        "Toiture terrasse non isolée",
+        "Toiture terrasse isolée",
+        "Toiture isolée haute perf"
+    ]
+
+    # --- Initialisation des valeurs par défaut si absentes ---
     if "nb_luminaires" not in st.session_state.local:
-        st.session_state.local["nb_luminaires"] = 3
+        st.session_state.local["nb_luminaires"] = 0
     if "puissance_luminaire" not in st.session_state.local:
-        st.session_state.local["puissance_luminaire"] = 40.0
+        st.session_state.local["puissance_luminaire"] = PUISSANCE_UNITAIRE
+    if "wall_type" not in st.session_state.local:
+        st.session_state.local["wall_type"] = wall_options[0]  # Par défaut : Parpaing creux non isolé
+    if "roof_type" not in st.session_state.local:
+        st.session_state.local["roof_type"] = roof_options[0]  # Par défaut : Toiture terrasse non isolée
 
     with st.form("local_parameters_form"):
         st.subheader("1. Géométrie et Parois")
         col_dim1, col_dim2 = st.columns(2)
         with col_dim1:
-            length = st.number_input("Longueur (m)", min_value=1.0, max_value=100.0, value=float(st.session_state.local["length"]), step=0.5)
-            width = st.number_input("Largeur (m)", min_value=1.0, max_value=100.0, value=float(st.session_state.local["width"]), step=0.5)
-            height = st.number_input("Hauteur (m)", min_value=1.5, max_value=20.0, value=float(st.session_state.local["height"]), step=0.1)
+            length = st.number_input(
+                "Longueur (m)", min_value=1.0, max_value=100.0,
+                value=float(st.session_state.local["length"]), step=0.5
+            )
+            width = st.number_input(
+                "Largeur (m)", min_value=1.0, max_value=100.0,
+                value=float(st.session_state.local["width"]), step=0.5
+            )
+            height = st.number_input(
+                "Hauteur (m)", min_value=1.5, max_value=20.0,
+                value=float(st.session_state.local["height"]), step=0.1
+            )
         with col_dim2:
-            wall_options = list(BuildingThermalCalculator.U_VALUES.keys())
-            wall_type = st.selectbox("Type de Murs", wall_options, index=wall_options.index(st.session_state.local["wall_type"]))
-            roof_type = st.selectbox("Type de Toiture", wall_options, index=wall_options.index(st.session_state.local["roof_type"]))
-
-        st.subheader("2. Éclairage (configuration réelle)")
-        col_light1, col_light2 = st.columns(2)
-        with col_light1:
-            nb_luminaires = st.number_input(
-                "Nombre de luminaires", 
-                min_value=0, 
-                step=1, 
-                value=st.session_state.local["nb_luminaires"]
+            # Sélection du type de murs
+            wall_type = st.selectbox(
+                "Type de Murs", wall_options,
+                index=wall_options.index(st.session_state.local["wall_type"])
             )
-        with col_light2:
-            puissance_luminaire = st.number_input(
-                "Puissance unitaire (W)", 
-                min_value=0.0, 
-                step=5.0, 
-                value=float(st.session_state.local["puissance_luminaire"])
+            # Sélection du type de toiture
+            roof_type = st.selectbox(
+                "Type de Toiture", roof_options,
+                index=roof_options.index(st.session_state.local["roof_type"])
             )
 
-        # Calcul dynamique de la puissance totale d'éclairage
-        total_lighting_w = nb_luminaires * puissance_luminaire
+        st.subheader("2. Éclairage (calcul automatique)")
+
+        # --- Calcul automatique de l'éclairage ---
         surface = length * width
-        if surface > 0:
-            densite_equivalente = total_lighting_w / surface
-            st.caption(f"**Puissance d'éclairage totale :** {total_lighting_w:.1f} W (soit {densite_equivalente:.1f} W/m²)")
-        else:
-            st.caption("Puissance d'éclairage totale : 0 W")
+        flux_lumineux_total = ECLAIRAGE_REQUIS * surface          # en lumens (lm)
+        puissance_theorique = flux_lumineux_total / RENDEMENT_LED # en watts (W)
+        nb_luminaires = int(max(1, round(puissance_theorique / PUISSANCE_UNITAIRE)))
+        puissance_reelle = nb_luminaires * PUISSANCE_UNITAIRE     # en watts (W)
 
+        # Affichage des résultats (lecture seule)
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.metric("Éclairement requis", f"{ECLAIRAGE_REQUIS:.0f} lux")
+        with col_b:
+            st.metric("Flux lumineux total", f"{flux_lumineux_total:.0f} lm")
+        with col_c:
+            st.metric("Puissance théorique", f"{puissance_theorique:.1f} W")
+
+        st.info(f"**Installation recommandée :** **{nb_luminaires}** luminaire(s) × **{PUISSANCE_UNITAIRE:.0f} W** = **{puissance_reelle:.1f} W** (soit {puissance_reelle/surface:.1f} W/m²)")
+
+        st.markdown("---")
         st.caption("**Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
-        
+
         submit_local = st.form_submit_button("💾 Enregistrer & Calculer les apports")
 
     if submit_local:
+        # Mise à jour de session_state
         st.session_state.local["length"] = length
         st.session_state.local["width"] = width
         st.session_state.local["height"] = height
         st.session_state.local["wall_type"] = wall_type
         st.session_state.local["roof_type"] = roof_type
         st.session_state.local["nb_luminaires"] = nb_luminaires
-        st.session_state.local["puissance_luminaire"] = puissance_luminaire
+        st.session_state.local["puissance_luminaire"] = PUISSANCE_UNITAIRE
         st.success("Paramètres du local enregistrés !")
         st.rerun()
 
-    # --- Calcul et affichage des résultats (toujours effectué) ---
-    # Récupération des valeurs depuis session_state
+    # --- Calcul et affichage des résultats---
     length = st.session_state.local.get("length", 8.0)
     width = st.session_state.local.get("width", 5.0)
     height = st.session_state.local.get("height", 3.5)
-    wall_type = st.session_state.local.get("wall_type", "Mur isolé (5 cm)")
-    roof_type = st.session_state.local.get("roof_type", "Toiture sandwich isolée")
-    nb_luminaires = st.session_state.local.get("nb_luminaires", 3)
-    puissance_luminaire = st.session_state.local.get("puissance_luminaire", 40.0)
+    wall_type = st.session_state.local.get("wall_type", wall_options[0])
+    roof_type = st.session_state.local.get("roof_type", roof_options[0])
+    nb_luminaires = st.session_state.local.get("nb_luminaires", 0)
+    puissance_luminaire = st.session_state.local.get("puissance_luminaire", PUISSANCE_UNITAIRE)
 
-    # Paramètres fixes pour le calcul
     total_lighting_w = nb_luminaires * puissance_luminaire
     surface = length * width
     lighting_density = total_lighting_w / surface if surface > 0 else 0.0
 
-    ACH = 1.5      # Renouvellements par heure (fixé)
-    OCCUPANTS = 1  # Personne (fixé)
-
-    # Appel au moteur de calcul (il utilise lighting_density en W/m²)
+    # Appel au moteur de calcul (qui utilise BuildingThermalCalculator.U_VALUES)
     res_local = BuildingThermalCalculator.compute_building_gains(
         length,
         width,
@@ -674,7 +708,7 @@ elif menu == "Local":
         roof_type,
         st.session_state.project["t_ext"],
         st.session_state.project["t_int"],
-        lighting_density,   # On lui passe la densité calculée
+        lighting_density,
         ACH,
         OCCUPANTS
     )
@@ -692,20 +726,12 @@ elif menu == "Local":
     col3.metric("Ventilation / Infiltration", f"{details['ventilation_w']:.1f} W", f"{details['ventilation_w']/1000:.2f} kW")
     col4.metric("Total local", f"{total_bat:.1f} W", f"{total_bat/1000:.2f} kW", delta_color="inverse")
 
-    # --- Affichage détaillé de l'éclairage ---
-    st.caption(f"Détail éclairage : **{nb_luminaires}** luminaire(s) × **{puissance_luminaire:.0f}** W = **{total_lighting_w:.1f} W**")
+    # Détail de l'éclairage
+    st.caption(f**Éclairage :** {nb_luminaires} luminaire(s) × {puissance_luminaire:.0f} W = **{total_lighting_w:.1f} W**")
 
-    # Graphique de répartition----
+# ----------------------------------------------------
 # PAGE : Bilan Thermique (synthèse)
 # ----------------------------------------------------
-    df_chart = pd.DataFrame({
-        "Poste": ["Transmission", "Éclairage+Occupants", "Ventilation"],
-        "Watts": [details['transmission_w'], details['lighting_w'], details['ventilation_w']]
-    })
-    fig = px.bar(df_chart, x="Poste", y="Watts", text_auto=".1f", color="Poste", title="Répartition des apports du local")
-    fig.update_layout(showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
-# ------------------------------------------------
 elif menu == "Bilan Thermique":
     st.title("Bilan Thermique et Dimensionnement AC")
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
