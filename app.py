@@ -622,7 +622,7 @@ elif menu == "Local":
         st.session_state.local["roof_type"] = roof_options[0]  # Par défaut : Toiture terrasse non isolée
 
     with st.form("local_parameters_form"):
-        st.subheader("1. Géométrie et Parois")
+            st.subheader("1. Géométrie et Parois")
         col_dim1, col_dim2 = st.columns(2)
         with col_dim1:
             length = st.number_input(
@@ -638,15 +638,25 @@ elif menu == "Local":
                 value=float(st.session_state.local["height"]), step=0.1
             )
         with col_dim2:
-            # Sélection du type de murs
+            # Gestion des valeurs obsolètes pour les murs
+            current_wall = st.session_state.local.get("wall_type", wall_options[0])
+            if current_wall not in wall_options:
+                current_wall = wall_options[0]
+                st.session_state.local["wall_type"] = current_wall
+
+            # Gestion des valeurs obsolètes pour les toitures
+            current_roof = st.session_state.local.get("roof_type", roof_options[0])
+            if current_roof not in roof_options:
+                current_roof = roof_options[0]
+                st.session_state.local["roof_type"] = current_roof
+
             wall_type = st.selectbox(
                 "Type de Murs", wall_options,
-                index=wall_options.index(st.session_state.local["wall_type"])
+                index=wall_options.index(current_wall)
             )
-            # Sélection du type de toiture
             roof_type = st.selectbox(
                 "Type de Toiture", roof_options,
-                index=roof_options.index(st.session_state.local["roof_type"])
+                index=roof_options.index(current_roof)
             )
 
         st.subheader("2. Éclairage (calcul automatique)")
