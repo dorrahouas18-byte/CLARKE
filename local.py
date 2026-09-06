@@ -10,7 +10,7 @@ class BuildingThermalCalculator:
         "Brique creuse non isolée (U=1.58)": 1.58,
         "Brique creuse + isolation 5cm (U=0.56)": 0.56,
         "Parpaing + isolation 8cm (U=0.40)": 0.40,
-        "Béton cellulaire 30cm (U≈0.36)": 0.36,
+        "Béton cellulaire 30cm (U~0.36)": 0.36,
         "Mur haute performance >8cm isolant (U=0.20-0.30)": 0.25,
         # Toitures
         "Toiture terrasse non isolée (U=1.11)": 1.11,
@@ -59,9 +59,8 @@ class BuildingThermalCalculator:
         q_occupants = occupants * 100.0
 
         # 4. Ventilation / Infiltration
-        # ACH = renouvellement d'air par heure, débit_air = volume * ACH / 3600 (m³/s)
-        # Chaleur pour chauffer l'air : Q = 0.34 * débit_air (m³/h) * delta_t
-        # ou plus précisément : Q = 0.34 * (volume * ACH) * delta_t
+        # ACH = renouvellement d'air par heure
+        # Q = 0.34 * (volume * ACH) * delta_t  (en Watts)
         q_ventilation = 0.34 * (volume * ach) * delta_t
 
         # Total des gains
@@ -71,7 +70,7 @@ class BuildingThermalCalculator:
             "total_gains_w": q_total,
             "details": {
                 "transmission_w": q_transmission,
-                "lighting_w": q_lighting + q_occupants,  # On regroupe éclairage + occupants
+                "lighting_w": q_lighting + q_occupants,  # Éclairage + occupants regroupés
                 "ventilation_w": q_ventilation,
                 "occupants_w": q_occupants,
                 "surface_m2": surface,
