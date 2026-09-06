@@ -3,14 +3,19 @@ Module local.py - Calculs des apports thermiques du bâtiment
 """
 
 class BuildingThermalCalculator:
-    U_VALUES = {
-        "Mur non isolé (Béton 20cm)": 2.5,
-        "Mur isolé (5 cm)": 0.5,
-        "Mur très isolé (10 cm)": 0.28,
-        "Toiture sandwich isolée": 0.35,
-        "Toiture béton non isolée": 3.0
+     U_VALUES = {
+        # Murs
+        "Parpaing creux non isolé": 2.19,
+        "Brique creuse non isolée": 1.58,
+        "Brique creuse + isolation 5cm": 0.56,
+        "Parpaing + isolation 8cm": 0.40,
+        "Béton cellulaire 30cm": 0.36,
+        "Mur haute performance >8cm isolant": 0.25,  # Valeur moyenne
+        # Toitures
+        "Toiture terrasse non isolée": 1.11,
+        "Toiture terrasse isolée": 0.70,  # Valeur moyenne
+        "Toiture isolée haute perf": 0.60,  # Valeur moyenne
     }
-
     @classmethod
     def compute_building_gains(cls, length: float, width: float, height: float,
                                wall_type: str, roof_type: str,
