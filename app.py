@@ -615,7 +615,6 @@ elif menu == "Local":
     if "wall_type" not in st.session_state.local:
         st.session_state.local["wall_type"] = wall_options[0]
     else:
-        # Si la valeur stockée n'existe pas dans la liste, on la corrige
         if st.session_state.local["wall_type"] not in wall_options:
             st.session_state.local["wall_type"] = wall_options[0]
 
@@ -647,7 +646,6 @@ elif menu == "Local":
                 value=float(st.session_state.local["height"]), step=0.1
             )
         with col_dim2:
-            # --- Ces deux instructions utilisent les valeurs corrigées ---
             wall_type = st.selectbox(
                 "Type de Murs", wall_options,
                 index=wall_options.index(st.session_state.local["wall_type"])
@@ -660,14 +658,12 @@ elif menu == "Local":
         st.subheader("2. Éclairage (calcul automatique)")
         st.caption("🔹 Éclairement fixé à 200 lux (norme pour local technique / armoire électrique)")
 
-        # --- Calcul automatique de l'éclairage ---
         surface = length * width
         flux_lumineux_total = ECLAIRAGE_REQUIS * surface
         puissance_theorique = flux_lumineux_total / RENDEMENT_LED
         nb_luminaires = int(max(1, round(puissance_theorique / PUISSANCE_UNITAIRE)))
         puissance_reelle = nb_luminaires * PUISSANCE_UNITAIRE
 
-        # Affichage des résultats (lecture seule)
         col_a, col_b, col_c = st.columns(3)
         with col_a:
             st.metric("Éclairement requis", f"{ECLAIRAGE_REQUIS:.0f} lux")
@@ -676,7 +672,6 @@ elif menu == "Local":
         with col_c:
             st.metric("Puissance théorique", f"{puissance_theorique:.1f} W")
 
-        # Ligne d'information (pleine largeur)
         st.caption(f"💡 **Installation recommandée :** {nb_luminaires} luminaire(s) × {PUISSANCE_UNITAIRE:.0f} W = **{puissance_reelle:.1f} W** (soit {puissance_reelle/surface:.1f} W/m²)")
 
         st.markdown("---")
