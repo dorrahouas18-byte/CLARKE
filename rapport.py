@@ -1,6 +1,5 @@
 """
 Module rapport.py - Génération de rapport PDF épuré et professionnel
-Version minimaliste : projet, local, équipements (totaux), bilan final.
 """
 import os
 from datetime import datetime
@@ -77,7 +76,7 @@ class PDFReportGenerator:
         story = []
 
         # --- En-tête ---
-        # Logo (optionnel)
+        # Logo 
         logo_path = "assets/Logo1.png"
         if os.path.exists(logo_path):
             try:
@@ -159,7 +158,7 @@ class PDFReportGenerator:
         story.append(t_local)
         story.append(Spacer(1, 0.6 * cm))
 
-        # --- 3. SYNTHESE DES EQUIPEMENTS (totaux uniquement) ---
+        # --- 3. SYNTHESE DES EQUIPEMENTS  ---
         story.append(Paragraph("3. Synthèse des équipements", h2_style))
 
         # Calcul des totaux
