@@ -13,34 +13,6 @@ from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
 from icons import icon, title_with_icon
 
-# ----------------------------------------------------
-# CONFIGURATION DE LA PAGE & THÈME CLARKE ENERGY
-# ----------------------------------------------------
-st.set_page_config(
-    page_title="AC Sizing Pro | Clarke Energy",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# --- GESTION DU LOGO ---
-logo_path = "assets/Logo2.png"
-if os.path.exists(logo_path):
-    st.sidebar.image(logo_path, use_container_width=True)
-else:
-    st.sidebar.warning("Logo Clarke Energy non trouvé (assets/Logo2.png)")
-
-st.sidebar.caption("Calcul Climatisation Local Technique")
-st.sidebar.markdown("---")
-
-# --- SÉLECTEUR DE THÈME ---
-st.sidebar.markdown("### Apparence")
-theme_choice = st.sidebar.radio(
-    "Choisir le thème visuel :",
-    ["☀️ Mode Clair", "🌙 Mode Sombre"],
-    index=0
-)
-st.sidebar.markdown("---")
-
 # --- INJECTION CSS DYNAMIQUE & THÈME PLOTLY ---
 if theme_choice == "☀️ Mode Clair":
     plotly_template = "plotly_white"
@@ -94,7 +66,6 @@ if theme_choice == "☀️ Mode Clair":
             
             /* ===== MÉTRIQUES - LABELS ===== */
             [data-testid="stMetricLabel"],
-            .stMetricLabel,
             [data-testid="stMetricLabel"] > div {
                 color: #64748B !important;
                 font-size: 12px !important;
@@ -104,20 +75,25 @@ if theme_choice == "☀️ Mode Clair":
             
             /* ===== MÉTRIQUES - VALEURS ===== */
             [data-testid="stMetricValue"],
-            .stMetricValue,
             [data-testid="stMetricValue"] > div {
                 color: #2B6CB0 !important;
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
                 font-weight: 700 !important;
             }
             
-            /* ===== SIDEBAR ===== */
+            /* ===== SIDEBAR (toujours sombre) ===== */
             [data-testid="stSidebar"] {
-                background-color: #FFFFFF !important;
-                border-right: 1px solid #060B14;
+                background-color: #0F172A !important;
+                border-right: 1px solid #1E293B;
             }
             [data-testid="stSidebar"] * {
-                color: #0F172A !important;
+                color: #E2E8F0 !important;
+            }
+            [data-testid="stSidebar"] h2,
+            [data-testid="stSidebar"] h3,
+            [data-testid="stSidebar"] label {
+                color: #FFFFFF !important;
+                font-weight: 600 !important;
             }
             
             /* ===== BOUTONS ===== */
@@ -156,7 +132,8 @@ if theme_choice == "☀️ Mode Clair":
             }
         </style>
     """, unsafe_allow_html=True)
-    else:
+
+else:
     plotly_template = "plotly_dark"
     st.markdown("""
         <style>
@@ -182,7 +159,7 @@ if theme_choice == "☀️ Mode Clair":
                 color: #FFFFFF !important;
             }
             
-            /* ===== TEXTE GÉNÉRAL (paragraphes, spans) ===== */
+            /* ===== TEXTE GÉNÉRAL ===== */
             p, span, div.stMarkdown {
                 color: #E2E8F0 !important;
             }
@@ -199,7 +176,7 @@ if theme_choice == "☀️ Mode Clair":
                 font-weight: 500 !important;
             }
             
-            /* ===== CAPTIONS (petites notes) ===== */
+            /* ===== CAPTIONS ===== */
             .stCaption,
             [data-testid="stCaptionContainer"],
             small {
@@ -208,7 +185,6 @@ if theme_choice == "☀️ Mode Clair":
             
             /* ===== MÉTRIQUES - LABELS ===== */
             [data-testid="stMetricLabel"],
-            .stMetricLabel,
             [data-testid="stMetricLabel"] > div {
                 color: #A0AEC0 !important;
                 font-size: 12px !important;
@@ -218,14 +194,13 @@ if theme_choice == "☀️ Mode Clair":
             
             /* ===== MÉTRIQUES - VALEURS ===== */
             [data-testid="stMetricValue"],
-            .stMetricValue,
             [data-testid="stMetricValue"] > div {
                 color: #63B3ED !important;
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
                 font-weight: 700 !important;
             }
             
-            /* ===== SIDEBAR ===== */
+            /* ===== SIDEBAR (toujours sombre) ===== */
             [data-testid="stSidebar"] {
                 background-color: #0F172A !important;
                 border-right: 1px solid #1E293B;
