@@ -58,7 +58,6 @@ def icon(name: str, size: int = 20, color: str = "#2B6CB0") -> str:
 
 
 def title_with_icon(text: str, icon_name: str, size: int = 24, color: str = "#2B6CB0") -> str:
-    """Retourne un titre HTML avec une icône SVG. La couleur du texte est gérée par le CSS."""
     return (
         f'<div style="display:flex;align-items:center;margin-bottom:8px;">'
         f'{icon(icon_name, size, color)}'
