@@ -14,7 +14,7 @@ from calculs import UnitConverter, ThermalEngine
 from local import BuildingThermalCalculator
 from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
-from icon import icon, title_with_icon   # (ou icons selon votre nom de fichier)
+from icons import icon, title_with_icon   # (ou icons selon votre nom de fichier)
 
 # ====================================================
 #  CONFIGURATION DE LA PAGE
