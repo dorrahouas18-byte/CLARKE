@@ -23,7 +23,6 @@ class PDFReportGenerator:
         bilan: dict,
         auxiliaires: dict = None
     ):
-        """Génère un rapport PDF clair, épuré et professionnel."""
 
         # --- Création du dossier ---
         folder = os.path.dirname(filename)
