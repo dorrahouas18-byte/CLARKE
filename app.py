@@ -206,6 +206,14 @@ else:
 # ----------------------------------------------------
 # INITIALISATION DES ÉTATS DE SESSION
 # ----------------------------------------------------
+
+# --- Drapeaux de progression ---
+if "flag_projet_saved" not in st.session_state:
+    st.session_state.flag_projet_saved = False
+if "flag_local_saved" not in st.session_state:
+    st.session_state.flag_local_saved = False
+
+# --- Configuration Projet ---
 if "project" not in st.session_state:
     st.session_state.project = {
         "nom": "Projet Clarke Energy",
@@ -218,6 +226,7 @@ if "project" not in st.session_state:
         "t_int": 25.0
     }
 
+# --- Configuration Local ---
 if "local" not in st.session_state:
     st.session_state.local = {
         "length": 8.0, "width": 5.0, "height": 3.5,
@@ -288,12 +297,12 @@ db_mgr = DatabaseManager()
 # BARRE DE PROGRESSION
 # ----------------------------------------------------
 def afficher_progression():
-    """Affiche une barre de progression basée sur les étapes complétées."""
+    """Affiche une barre de progression basée sur les étapes réellement complétées."""
     etapes = [
-        ("Projet", bool(st.session_state.project.get("nom", "").strip())),
-        ("Local", st.session_state.local.get("length", 0) > 0),
+        ("Projet", st.session_state.get("flag_projet_saved", False)),
+        ("Local", st.session_state.get("flag_local_saved", False)),
         ("TGBT", len(st.session_state.get("tgbt_components", [])) > 0),
-        ("Armoires A", st.session_state.get("armoire_a_quantite", 0) > 0),
+        ("Armoires A", st.session_state.get("armoire_a_quantite", 0) > 0 and st.session_state.get("pertes_armoires_w", 0) > 0),
         ("Armoires Aux.", len(st.session_state.get("armoires_aux_components", [])) > 0),
         ("Bilan", st.session_state.get("bilan_computed", False)),
     ]
@@ -301,7 +310,6 @@ def afficher_progression():
     faites = sum(1 for _, done in etapes if done)
     progression = faites / total
 
-    # Affichage compact
     cols = st.columns(total)
     for i, (nom, done) in enumerate(etapes):
         with cols[i]:
@@ -317,9 +325,15 @@ def afficher_progression():
 # MENU DE NAVIGATION
 # ----------------------------------------------------
 menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
-
+st.sidebar.markdown("---")
+if st.sidebar.button("Réinitialiser l'étude", type="secondary"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+    
 # Appel de la barre de progression
 afficher_progression()
+
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
 # ----------------------------------------------------
@@ -385,6 +399,7 @@ if menu == "Projet":
         st.session_state.project["statut"] = statut_projet
         st.session_state.project["t_ext"] = t_ext
         st.session_state.project["t_int"] = t_int
+        st.session_state.flag_projet_saved = True
         st.success("Données du projet mises à jour avec succès !")
         st.rerun()
 # ----------------------------------------------------
@@ -826,6 +841,7 @@ elif menu == "Local":
         st.session_state.local["roof_type"] = roof_type
         st.session_state.local["nb_luminaires"] = nb_luminaires
         st.session_state.local["puissance_luminaire"] = PUISSANCE_UNITAIRE
+        st.session_state.flag_local_saved = True
         st.success("Paramètres du local enregistrés.")
         st.rerun()
 
