@@ -124,6 +124,7 @@ if theme_choice == "☀️ Mode Clair":
             hr {
                 border-color: #E2E8F0;
             }
+            .custom-title-text { color: #0F172A !important; }
         </style>
     """, unsafe_allow_html=True)
 else:
@@ -200,6 +201,7 @@ else:
             hr {
                 border-color: #1E293B;
             }
+            .custom-title-text { color: #FFFFFF !important; }
         </style>
     """, unsafe_allow_html=True)
 
