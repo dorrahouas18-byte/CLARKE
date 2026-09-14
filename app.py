@@ -148,10 +148,31 @@ else:
                 letter-spacing: -0.02em;
             }
             
+            /* Texte général, labels et captions */
+            p, div, span, label, .stMarkdown, .stCaption {
+                color: #E2E8F0 !important;
+            }
+            
+            /* Labels des champs de saisie */
+            .stTextInput label, .stNumberInput label, .stSelectbox label,
+            .stDateInput label, .stTextArea label {
+                color: #E2E8F0 !important;
+                font-weight: 500 !important;
+            }
+            
+            /* Captions */
+            .stCaption, small {
+                color: #A0AEC0 !important;
+            }
+            
             /* Sidebar */
-            [data-testid="stSidebar"] {
-                background-color: #0F172A !important;
-                border-right: 1px solid #1E293B;
+            [data-testid="stSidebar"] * {
+                color: #E2E8F0 !important;
+            }
+            
+            [data-testid="stSidebar"] h2, 
+            [data-testid="stSidebar"] h3 {
+                color: #FFFFFF !important;
             }
             
             /* Métriques */
