@@ -11,6 +11,7 @@ from calculs import UnitConverter, ThermalEngine
 from local import BuildingThermalCalculator
 from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
+from icons import icon, title_with_icon
 
 # ----------------------------------------------------
 # CONFIGURATION DE LA PAGE & THÈME CLARKE ENERGY
@@ -323,12 +324,19 @@ afficher_progression()
 # PAGE : Projet (données administratives)
 # ----------------------------------------------------
 if menu == "Projet":
-    st.title("Projet & Identification")
+    st.markdown(
+        title_with_icon("Projet & Identification", "document", size=28),
+        unsafe_allow_html=True
+    )
     st.caption("Renseignez les données administratives du projet.")
     st.markdown("---")
 
     with st.form("project_details_form"):
-        st.subheader("Informations Générales")
+        # Section 1 : Informations Générales
+        st.markdown(
+            title_with_icon("Informations Générales", "clipboard", size=20),
+            unsafe_allow_html=True
+        )
         c1, c2 = st.columns(2)
         with c1:
             nom_projet = st.text_input("Nom du Projet / Site", value=st.session_state.project.get("nom", ""))
@@ -337,18 +345,36 @@ if menu == "Projet":
         with c2:
             ingenieur = st.text_input("Ingénieur Études AC / Auteur", value=st.session_state.project.get("ingenieur", ""))
             date_projet = st.date_input("Date de l'Étude", value=datetime.today())
-            statut_projet = st.selectbox("Statut du Document", ["Avant-Projet (APS)", "Étude Détaillée (APD)", "Conception Finale (EXE)"],
-                                         index=["Avant-Projet (APS)", "Étude Détaillée (APD)", "Conception Finale (EXE)"].index(st.session_state.project.get("statut", "Avant-Projet (APS)")))
+            statut_projet = st.selectbox(
+                "Statut du Document",
+                ["Avant-Projet (APS)", "Étude Détaillée (APD)", "Conception Finale (EXE)"],
+                index=["Avant-Projet (APS)", "Étude Détaillée (APD)", "Conception Finale (EXE)"].index(
+                    st.session_state.project.get("statut", "Avant-Projet (APS)")
+                )
+            )
 
-        # Températures de calcul
-        st.subheader("Conditions de Dimensionnement")
+        # Section 2 : Conditions de Dimensionnement
+        st.markdown(
+            title_with_icon("Conditions de Dimensionnement", "bolt", size=20),
+            unsafe_allow_html=True
+        )
         col_t1, col_t2 = st.columns(2)
         with col_t1:
-            t_ext = st.number_input("Température extérieure (°C)", min_value=-10.0, max_value=60.0, value=float(st.session_state.project.get("t_ext", 40.0)), step=0.5)
+            t_ext = st.number_input(
+                "Température extérieure (°C)",
+                min_value=-10.0, max_value=60.0,
+                value=float(st.session_state.project.get("t_ext", 40.0)),
+                step=0.5
+            )
         with col_t2:
-            t_int = st.number_input("Température intérieure souhaitée (°C)", min_value=10.0, max_value=40.0, value=float(st.session_state.project.get("t_int", 25.0)), step=0.5)
+            t_int = st.number_input(
+                "Température intérieure souhaitée (°C)",
+                min_value=10.0, max_value=40.0,
+                value=float(st.session_state.project.get("t_int", 25.0)),
+                step=0.5
+            )
 
-        submit_btn = st.form_submit_button("💾 Enregistrer les données du Projet")
+        submit_btn = st.form_submit_button("Enregistrer les données du Projet")
 
     if submit_btn:
         st.session_state.project["nom"] = nom_projet
@@ -361,12 +387,14 @@ if menu == "Projet":
         st.session_state.project["t_int"] = t_int
         st.success("Données du projet mises à jour avec succès !")
         st.rerun()
-    
 # ----------------------------------------------------
 # PAGE : TGBT
 # ----------------------------------------------------
 elif menu == "TGBT":
-    st.title("Gestion du TGBT (Tableau Général Basse Tension)")
+    st.markdown(
+        title_with_icon("Gestion du TGBT", "chart_bar", size=28),
+        unsafe_allow_html=True
+    )
     st.caption("Composez votre TGBT en ajoutant ses composants. Les dissipations thermiques seront automatiquement sommées pour le bilan thermique.")
     st.markdown("---")
 
@@ -378,50 +406,51 @@ elif menu == "TGBT":
 
     # Base de données des composants (avec les jeux de barres calibrés)
     COMPOSANTS_TGBT = {
-    # Jeux de barres (Pertes par mètre, cuivre: loi de joule)
-    "Jeu de barres - 250A": 20,
-    "Jeu de barres - 400A": 40,
-    "Jeu de barres - 630A": 80,
-    "Jeu de barres - 1000A": 150,
-    "Jeu de barres - 1250A": 200,
-    "Jeu de barres - 1600A": 300,
-    "Jeu de barres - 2000A": 450,
-    "Jeu de barres - 2500A": 650,
-    "Jeu de barres - 3200A": 900,   
-    "Jeu de barres - 4000A": 1300,
+        # Jeux de barres (Pertes par mètre, cuivre: loi de joule)
+        "Jeu de barres - 250A": 20,
+        "Jeu de barres - 400A": 40,
+        "Jeu de barres - 630A": 80,
+        "Jeu de barres - 1000A": 150,
+        "Jeu de barres - 1250A": 200,
+        "Jeu de barres - 1600A": 300,
+        "Jeu de barres - 2000A": 450,
+        "Jeu de barres - 2500A": 650,
+        "Jeu de barres - 3200A": 900,
+        "Jeu de barres - 4000A": 1300,
 
-    # Disjoncteurs (pertes: loi de joule)
-    "Disjoncteur de branchement (630A)": 220,
-    "Disjoncteur de branchement (400A)": 150,
-    "Disjoncteur général (250A)": 120,
-    "Disjoncteur divisionnaire (63A)": 25,
-    "Disjoncteur divisionnaire (32A)": 15,
-    "Disjoncteur divisionnaire (16A)": 10,
-    "Interrupteur-sectionneur (630A)": 100,
+        # Disjoncteurs (pertes: loi de joule)
+        "Disjoncteur de branchement (630A)": 220,
+        "Disjoncteur de branchement (400A)": 150,
+        "Disjoncteur général (250A)": 120,
+        "Disjoncteur divisionnaire (63A)": 25,
+        "Disjoncteur divisionnaire (32A)": 15,
+        "Disjoncteur divisionnaire (16A)": 10,
+        "Interrupteur-sectionneur (630A)": 100,
 
-    # --- Acti9 iC60N (modulaires) pour petits départs ---
-    "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
-    "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
-    "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
-    "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
-    "Disj. Acti9 iC60N 4P 6A (9W)": 9,
-    "Disj. Acti9 iC60N 4P 16A (12W)": 12,
-    "Disj. Acti9 iC60N 4P 32A (18W)": 18,
-    "Disj. Acti9 iC60N 4P 63A (28W)": 28,
+        # --- Acti9 iC60N (modulaires) pour petits départs ---
+        "Disj. Acti9 iC60N 1P+N 6A (8W)": 8,
+        "Disj. Acti9 iC60N 1P+N 16A (10W)": 10,
+        "Disj. Acti9 iC60N 1P+N 32A (15W)": 15,
+        "Disj. Acti9 iC60N 1P+N 63A (25W)": 25,
+        "Disj. Acti9 iC60N 4P 6A (9W)": 9,
+        "Disj. Acti9 iC60N 4P 16A (12W)": 12,
+        "Disj. Acti9 iC60N 4P 32A (18W)": 18,
+        "Disj. Acti9 iC60N 4P 63A (28W)": 28,
 
-    # Contacteurs / Variateurs
-    "Contacteur (puissance)": 50,
-    "Contacteur (auxiliaire)": 20,
+        # Contacteurs / Variateurs
+        "Contacteur (puissance)": 50,
+        "Contacteur (auxiliaire)": 20,
 
-    # Autres
-    "Parafoudre (type 1+2)": 15,
-    "Transformateur de courant (TC)": 5,
-    "Compteur / Analyseur": 15,
-    "Bornier de raccordement (jeu)": 10,
-    "Ventilateur d'armoire (230V)": 30,
-    "Alimentation 24VDC": 25,
-    "Coffret vide (enveloppe)": 50
+        # Autres
+        "Parafoudre (type 1+2)": 15,
+        "Transformateur de courant (TC)": 5,
+        "Compteur / Analyseur": 15,
+        "Bornier de raccordement (jeu)": 10,
+        "Ventilateur d'armoire (230V)": 30,
+        "Alimentation 24VDC": 25,
+        "Coffret vide (enveloppe)": 50
     }
+
     # --- Formulaire d'ajout ---
     with st.form(key="add_tgbt_form", clear_on_submit=True):
         col1, col2, col3 = st.columns([2, 1, 1])
@@ -433,8 +462,8 @@ elif menu == "TGBT":
         with col3:
             total_ligne = puissance_unitaire * quantite
             st.metric("Total pour ce composant", f"{total_ligne} W")
-        
-        submitted = st.form_submit_button("➕ Ajouter au TGBT", type="primary")
+
+        submitted = st.form_submit_button("Ajouter au TGBT", type="primary")
         if submitted:
             st.session_state.tgbt_components.append({
                 "nom": composant_choisi,
@@ -442,13 +471,17 @@ elif menu == "TGBT":
                 "quantite": quantite,
                 "total": total_ligne
             })
-            st.success(f"✅ '{composant_choisi}' x{quantite} ajouté !")
+            st.success(f"'{composant_choisi}' x{quantite} ajouté.")
             st.rerun()
 
     st.markdown("---")
 
     # --- Affichage de la composition ---
     if st.session_state.tgbt_components:
+        st.markdown(
+            title_with_icon("Composition actuelle du TGBT", "clipboard", size=20),
+            unsafe_allow_html=True
+        )
         df = pd.DataFrame(st.session_state.tgbt_components)
         df_display = df.rename(columns={
             "nom": "Composant",
@@ -457,24 +490,27 @@ elif menu == "TGBT":
             "total": "Total (W)"
         })
         st.dataframe(df_display, use_container_width=True, hide_index=True)
-        
+
         total_general = df["total"].sum()
         st.session_state.pertes_tgbt_w = total_general
         st.metric("Puissance dissipée totale du TGBT", f"{total_general:.0f} W", delta=f"{total_general/1000:.2f} kW")
-        
-        if st.button("🗑️ Réinitialiser la composition", type="secondary"):
+
+        if st.button("Réinitialiser la composition", type="secondary"):
             st.session_state.tgbt_components = []
             st.session_state.pertes_tgbt_w = 0.0
             st.rerun()
     else:
-        st.info("Aucun composant ajouté! Utilisez le formulaire pour composer votre TGBT.")
+        st.info("Aucun composant ajouté. Utilisez le formulaire pour composer votre TGBT.")
         st.session_state.pertes_tgbt_w = 0.0
 
 # ----------------------------------------------------
 # PAGE : Armoires A
 # ----------------------------------------------------
 elif menu == "Armoire A":
-    st.title("Gestion des Armoires A")
+    st.markdown(
+        title_with_icon("Gestion des Armoires A", "bricks", size=28),
+        unsafe_allow_html=True
+    )
     st.caption("La composition interne des Armoires A est fixe (selon plan type). Indiquez simplement le nombre d'armoires identiques installées.")
     st.markdown("---")
 
@@ -487,22 +523,25 @@ elif menu == "Armoire A":
         ("Départ moteur 11kW (protection + contacteur)", 25, 6),
         ("Départ moteur 9kW (protection + contacteur)", 20, 4),
         ("Départ moteur 1.2kW (protection + contacteur)", 10, 8),
-        ("Variateurs 45kW", 450, 1),   # ~10W/kW
-        ("Variateurs 18.5kW", 185, 4), # ~10W/kW
-        ("Jeu de barres 400A (2m)", 80, 1),  # 40W/m * 2m
+        ("Variateurs 45kW", 450, 1),
+        ("Variateurs 18.5kW", 185, 4),
+        ("Jeu de barres 400A (2m)", 80, 1),
         ("Ventilation / Accessoires", 50, 1)
     ]
 
     # Calcul des pertes pour UNE armoire
     pertes_unitaire = 0.0
-    st.subheader("📋 Composition type d'une Armoire A")
-    
+    st.markdown(
+        title_with_icon("Composition type d'une Armoire A", "clipboard", size=20),
+        unsafe_allow_html=True
+    )
+
     data_rows = []
     for nom, pu, qte in COMPOSANTS_ARMOIRE_A:
         total_ligne = pu * qte
         pertes_unitaire += total_ligne
         data_rows.append({"Composant": nom, "Puissance unitaire (W)": pu, "Qté": qte, "Total (W)": total_ligne})
-    
+
     df_unitaire = pd.DataFrame(data_rows)
     st.dataframe(df_unitaire, use_container_width=True, hide_index=True)
     st.metric("Pertes pour 1 Armoire A", f"{pertes_unitaire:.0f} W", delta=f"{pertes_unitaire/1000:.2f} kW")
@@ -510,22 +549,31 @@ elif menu == "Armoire A":
     st.markdown("---")
 
     # --- Sélection de la quantité ---
-    st.subheader("Nombre d'armoires identiques")
+    st.markdown(
+        title_with_icon("Nombre d'armoires identiques", "settings", size=20),
+        unsafe_allow_html=True
+    )
     quantite = st.number_input("Nombre d'Armoires A identiques", min_value=0, max_value=20, step=1, value=1)
-    
-    if st.button("💾 Enregistrer la quantité", type="primary"):
+
+    if st.button("Enregistrer le nombre", type="primary"):
         st.session_state.armoire_a_quantite = quantite
         st.session_state.pertes_armoires_w = pertes_unitaire * quantite
-        st.success(f"✅ {quantite} armoire(s) A enregistrée(s). Puissance totale : {st.session_state.pertes_armoires_w:.0f} W")
+        st.success(f"{quantite} armoire(s) A enregistrée(s). Puissance totale : {st.session_state.pertes_armoires_w:.0f} W")
 
     st.markdown("---")
 
     # --- Affichage du total enregistré ---
     if 'armoire_a_quantite' in st.session_state and st.session_state.armoire_a_quantite > 0:
-        st.subheader("Récapitulatif")
+        st.markdown(
+            title_with_icon("Récapitulatif", "trending", size=20),
+            unsafe_allow_html=True
+        )
         st.metric("Nombre d'armoires", st.session_state.armoire_a_quantite)
-        st.metric("Puissance dissipée totale (Armoires A)", f"{st.session_state.pertes_armoires_w:.0f} W", 
-                  delta=f"{st.session_state.pertes_armoires_w/1000:.2f} kW")
+        st.metric(
+            "Puissance dissipée totale (Armoires A)",
+            f"{st.session_state.pertes_armoires_w:.0f} W",
+            delta=f"{st.session_state.pertes_armoires_w/1000:.2f} kW"
+        )
     else:
         st.info("Aucune armoire A enregistrée pour le moment. Définissez le nombre ci-dessus.")
         st.session_state.pertes_armoires_w = 0.0
@@ -534,7 +582,10 @@ elif menu == "Armoire A":
 # PAGE : Armoire Auxiliaire
 # ----------------------------------------------------
 elif menu == "Armoire Auxiliaire":
-    st.title("Gestion des Armoires Auxiliaires")
+    st.markdown(
+        title_with_icon("Gestion des Armoires Auxiliaires", "chip", size=28),
+        unsafe_allow_html=True
+    )
     st.caption("Définissez la composition d'une armoire auxiliaire type, puis indiquez le nombre d'exemplaires identiques.")
     st.markdown("---")
 
@@ -547,6 +598,10 @@ elif menu == "Armoire Auxiliaire":
         st.session_state.pertes_armoires_aux_w = 0.0
 
     # --- 1. Sélection de la quantité (multiplicateur) ---
+    st.markdown(
+        title_with_icon("Nombre d'armoires identiques", "settings", size=20),
+        unsafe_allow_html=True
+    )
     col_qty, _ = st.columns([1, 2])
     with col_qty:
         quantite = st.number_input(
@@ -560,6 +615,10 @@ elif menu == "Armoire Auxiliaire":
     st.markdown("---")
 
     # --- 2. Composition libre ---
+    st.markdown(
+        title_with_icon("Ajouter un composant à l'armoire type", "plus", size=20),
+        unsafe_allow_html=True
+    )
     COMPOSANTS_AUX = {
         # ====== DISJONCTEURS DE PUISSANCE ======
         "Disjoncteur général (160A)": 80,
@@ -604,7 +663,7 @@ elif menu == "Armoire Auxiliaire":
             total_ligne = puissance_unitaire * qte_composant
             st.metric("Total", f"{total_ligne} W")
 
-        submitted = st.form_submit_button("➕ Ajouter ce composant", type="primary")
+        submitted = st.form_submit_button("Ajouter ce composant", type="primary")
         if submitted:
             st.session_state.armoires_aux_components.append({
                 "nom": composant_choisi,
@@ -612,13 +671,17 @@ elif menu == "Armoire Auxiliaire":
                 "quantite": qte_composant,
                 "total": total_ligne
             })
-            st.success("Ajouté !")
+            st.success("Composant ajouté.")
             st.rerun()
 
     st.markdown("---")
 
     # --- 3. Affichage de la composition de l'armoire type ---
     if st.session_state.armoires_aux_components:
+        st.markdown(
+            title_with_icon("Composition de l'armoire type", "clipboard", size=20),
+            unsafe_allow_html=True
+        )
         df = pd.DataFrame(st.session_state.armoires_aux_components)
         df_display = df.rename(columns={
             "nom": "Composant",
@@ -626,7 +689,6 @@ elif menu == "Armoire Auxiliaire":
             "quantite": "Qté",
             "total": "Total (W)"
         })
-        st.subheader("Composition de l'armoire type")
         st.dataframe(df_display, use_container_width=True, hide_index=True)
 
         total_type = df["total"].sum()
@@ -640,20 +702,22 @@ elif menu == "Armoire Auxiliaire":
             delta=f"{total_general/1000:.2f} kW"
         )
 
-        if st.button("🗑️ Réinitialiser la composition type", type="secondary"):
+        if st.button("Réinitialiser la composition type", type="secondary"):
             st.session_state.armoires_aux_components = []
             st.session_state.pertes_armoires_aux_w = 0.0
             st.rerun()
     else:
-        st.info("Aucun composant pour l'armoire auxiliaire! Utilisez le formulaire ci-dessus.")
+        st.info("Aucun composant pour l'armoire auxiliaire. Utilisez le formulaire ci-dessus.")
         st.session_state.pertes_armoires_aux_w = 0.0
-
 # ----------------------------------------------------
 # PAGE : Local (bâtiment)
 # ----------------------------------------------------
 elif menu == "Local":
-    st.title("Local Électrique & Enveloppe du Bâtiment")
-    st.caption("Configurez la géométrie et les parois. L'éclairage est calculé automatiquement selon la norme EN 12464-1 (Local technique = 200 lux).")
+    st.markdown(
+        title_with_icon("Local Électrique & Enveloppe du Bâtiment", "bricks", size=28),
+        unsafe_allow_html=True
+    )
+    st.caption("Configurez la géométrie et les parois. L'éclairage est calculé automatiquement selon la norme EN 12464-1.")
     st.markdown("---")
 
     # --- Paramètres fixes (scientifiques) ---
@@ -669,7 +733,7 @@ elif menu == "Local":
         "Brique creuse non isolée (U=1.58)",
         "Brique creuse + isolation 5cm (U=0.56)",
         "Parpaing + isolation 8cm (U=0.40)",
-        "Béton cellulaire 30cm (U≈0.36)",
+        "Béton cellulaire 30cm (U~0.36)",
         "Mur haute performance >8cm isolant (U=0.20-0.30)"
     ]
 
@@ -698,7 +762,10 @@ elif menu == "Local":
         st.session_state.local["puissance_luminaire"] = PUISSANCE_UNITAIRE
 
     with st.form("local_parameters_form"):
-        st.subheader("1. Géométrie et Parois")
+        st.markdown(
+            title_with_icon("1. Géométrie et Parois", "bricks", size=20),
+            unsafe_allow_html=True
+        )
         col_dim1, col_dim2 = st.columns(2)
         with col_dim1:
             length = st.number_input(
@@ -723,8 +790,13 @@ elif menu == "Local":
                 index=roof_options.index(st.session_state.local["roof_type"])
             )
 
-        st.subheader("2. Éclairage (calcul automatique)")
+        st.markdown(
+            title_with_icon("2. Éclairage (calcul automatique)", "light_bulb", size=20),
+            unsafe_allow_html=True
+        )
+        st.caption("Éclairement fixé à 200 lux (norme pour local technique / armoire électrique)")
 
+        # --- Calcul automatique de l'éclairage ---
         surface = length * width
         flux_lumineux_total = ECLAIRAGE_REQUIS * surface
         puissance_theorique = flux_lumineux_total / RENDEMENT_LED
@@ -739,12 +811,12 @@ elif menu == "Local":
         with col_c:
             st.metric("Puissance théorique", f"{puissance_theorique:.1f} W")
 
-        st.caption(f"💡 **Installation recommandée :** {nb_luminaires} luminaire(s) × {PUISSANCE_UNITAIRE:.0f} W = **{puissance_reelle:.1f} W** (soit {puissance_reelle/surface:.1f} W/m²)")
+        st.caption(f"Installation recommandée : {nb_luminaires} luminaire(s) x {PUISSANCE_UNITAIRE:.0f} W = {puissance_reelle:.1f} W (soit {puissance_reelle/surface:.1f} W/m²)")
 
         st.markdown("---")
-        st.caption("📌 **Paramètres fixes :** ACH = 1.5 vol/h | Occupants = 1 personne")
+        st.caption("Paramètres fixes : ACH = 1.5 vol/h | Occupants = 1 personne")
 
-        submit_local = st.form_submit_button("💾 Enregistrer & Calculer les apports")
+        submit_local = st.form_submit_button("Enregistrer & Calculer les apports")
 
     if submit_local:
         st.session_state.local["length"] = length
@@ -754,7 +826,7 @@ elif menu == "Local":
         st.session_state.local["roof_type"] = roof_type
         st.session_state.local["nb_luminaires"] = nb_luminaires
         st.session_state.local["puissance_luminaire"] = PUISSANCE_UNITAIRE
-        st.success("Paramètres du local enregistrés !")
+        st.success("Paramètres du local enregistrés.")
         st.rerun()
 
     # --- Calcul et affichage des résultats (toujours effectué) ---
@@ -782,7 +854,10 @@ elif menu == "Local":
     details = res_local["details"]
 
     st.markdown("---")
-    st.subheader("Bilan des apports du local")
+    st.markdown(
+        title_with_icon("Bilan des apports du local", "trending", size=20),
+        unsafe_allow_html=True
+    )
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Transmission", f"{details['transmission_w']:.1f} W", f"{details['transmission_w']/1000:.2f} kW")
@@ -790,18 +865,28 @@ elif menu == "Local":
     col3.metric("Ventilation / Infiltration", f"{details['ventilation_w']:.1f} W", f"{details['ventilation_w']/1000:.2f} kW")
     col4.metric("Total local", f"{total_bat:.1f} W", f"{total_bat/1000:.2f} kW", delta_color="inverse")
 
-    st.caption(f"💡 **Éclairage :** {nb_luminaires} luminaire(s) x {puissance_luminaire:.0f} W = **{total_lighting_w:.1f} W**")
+    st.caption(f"Éclairage : {nb_luminaires} luminaire(s) x {puissance_luminaire:.0f} W = {total_lighting_w:.1f} W")
 
+    df_chart = pd.DataFrame({
+        "Poste": ["Transmission", "Éclairage+Occupants", "Ventilation"],
+        "Watts": [details['transmission_w'], details['lighting_w'], details['ventilation_w']]
+    })
+    fig = px.bar(df_chart, x="Poste", y="Watts", text_auto=".1f", color="Poste", title="Répartition des apports du local")
+    fig.update_layout(showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 # ----------------------------------------------------
 # PAGE : Bilan Thermique (synthèse)
 # ----------------------------------------------------
 elif menu == "Bilan Thermique":
-    st.title("Bilan Thermique et Dimensionnement AC")
+    st.markdown(
+        title_with_icon("Bilan Thermique et Dimensionnement AC", "trending", size=28),
+        unsafe_allow_html=True
+    )
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
     st.markdown("---")
 
     # ------------------------------------------------------------
-    # 1. INITIALIZE SESSION STATE FOR RESULTS (default = 0 / empty)
+    # 1. INITIALISATION DES RÉSULTATS EN SESSION
     # ------------------------------------------------------------
     if 'bilan_results' not in st.session_state:
         st.session_state.bilan_results = {
@@ -820,19 +905,15 @@ elif menu == "Bilan Thermique":
             'marge_pourcent': 15,
             'q_interne_display': 0.0,
             'q_enveloppe_display': 0.0,
-            # for pie chart
             'pie_data': pd.DataFrame(),
-            # for sensitivity line
             'sens_data': pd.DataFrame()
         }
         st.session_state.bilan_computed = False
 
     # ------------------------------------------------------------
-    # 2. READ INPUTS FROM SESSION STATE 
+    # 2. LECTURE DES DONNÉES DEPUIS SESSION_STATE
     # ------------------------------------------------------------
-    # Pertes des équipements
-  
-    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0) 
+    pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
     pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
     pertes_armoires_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
 
@@ -843,8 +924,15 @@ elif menu == "Bilan Thermique":
     height = local_data.get("height", 0.0)
     wall_type = local_data.get("wall_type", "Mur isolé (5 cm)")
     roof_type = local_data.get("roof_type", "Toiture sandwich isolée")
-    lighting_w_m2 = local_data.get("lighting_w_m2", 0.0)
-    ach = local_data.get("ach", 0.0)
+
+    # Éclairage (calculé automatiquement dans la page Local)
+    nb_luminaires = local_data.get("nb_luminaires", 0)
+    puissance_luminaire = local_data.get("puissance_luminaire", 40.0)
+    surface = length * width
+    total_lighting_w = nb_luminaires * puissance_luminaire
+    lighting_w_m2 = total_lighting_w / surface if surface > 0 else 0.0
+
+    ach = 1.5  # valeur fixe (paramètre standard)
 
     # Données du projet (températures)
     project_data = st.session_state.get("project", {})
@@ -853,17 +941,15 @@ elif menu == "Bilan Thermique":
     delta_t = max(0.0, t_ext - t_int)
 
     # ------------------------------------------------------------
-    # 3. BUTTON TO TRIGGER CALCULATION
+    # 3. BOUTON DE CALCUL
     # ------------------------------------------------------------
-    if st.button("🔄 Calculer le Bilan Thermique", type="primary"):
-        # ---- Run all calculations ----
-        # 3.1 Apports Internes
+    if st.button("Calculer le Bilan Thermique", type="primary"):
+        # ---- 3.1 Apports Internes ----
         q_equipements = pertes_armoires + pertes_tgbt + pertes_armoires_aux
-        surface = length * width
         q_eclairage = lighting_w_m2 * surface
         q_interne = q_equipements + q_eclairage
 
-        # 3.2 Apports par l'Enveloppe
+        # ---- 3.2 Apports par l'Enveloppe ----
         from local import BuildingThermalCalculator
         u_wall = BuildingThermalCalculator.U_VALUES.get(wall_type, 0.5)
         u_roof = BuildingThermalCalculator.U_VALUES.get(roof_type, 0.35)
@@ -879,19 +965,19 @@ elif menu == "Bilan Thermique":
         q_ventilation = 0.34 * debit_air * delta_t
         q_enveloppe = q_transmission + q_ventilation
 
-        # 3.3 Besoin de refroidissement
+        # ---- 3.3 Besoin de refroidissement ----
         q_totale_brut = q_interne + q_enveloppe
         marge_pourcent = 15
         facteur_marge = 1 + (marge_pourcent / 100.0)
         q_totale_design = q_totale_brut * facteur_marge
 
-        # 3.4 Unités
+        # ---- 3.4 Unités ----
         puissance_kw = q_totale_design / 1000
         puissance_btu = q_totale_design * 3.412142
         puissance_tr = q_totale_design / 3516.85
         debit_air_estime = q_totale_design / (0.34 * delta_t) if delta_t > 0 else 0.0
 
-        # ---- Store results in session_state ----
+        # ---- Stockage des résultats ----
         st.session_state.bilan_results.update({
             'q_equipements': q_equipements,
             'q_eclairage': q_eclairage,
@@ -910,7 +996,7 @@ elif menu == "Bilan Thermique":
             'q_enveloppe_display': q_enveloppe,
         })
 
-        # ---- Pie chart data ----
+        # ---- Données camembert ----
         df_pie = pd.DataFrame({
             "Source": ["Équipements", "Enveloppe", "Éclairage"],
             "Watts": [q_equipements, q_enveloppe, q_eclairage]
@@ -918,7 +1004,7 @@ elif menu == "Bilan Thermique":
         df_pie = df_pie[df_pie["Watts"] > 0]
         st.session_state.bilan_results['pie_data'] = df_pie
 
-        # ---- Sensitivity data ----
+        # ---- Données de sensibilité ----
         plage_temp = list(range(25, 51, 5))
         puissances = []
         for t in plage_temp:
@@ -936,13 +1022,16 @@ elif menu == "Bilan Thermique":
         st.session_state.bilan_computed = True
 
     # ------------------------------------------------------------
-    # 4. DISPLAY RESULTS (ZERO BY DEFAULT)
+    # 4. AFFICHAGE DES RÉSULTATS
     # ------------------------------------------------------------
     results = st.session_state.bilan_results
     computed = st.session_state.bilan_computed
 
-    # ---- Display metrics ----
-    st.subheader("Synthèse du Bilan de Puissance")
+    # ---- Synthèse du bilan ----
+    st.markdown(
+        title_with_icon("Synthèse du Bilan de Puissance", "chart_pie", size=20),
+        unsafe_allow_html=True
+    )
     col1, col2, col3, col4 = st.columns(4)
     col1.metric(
         label="Puissance Frigorifique Nécessaire",
@@ -966,38 +1055,41 @@ elif menu == "Bilan Thermique":
 
     st.markdown("---")
 
-    # ---- Detail of thermal loads ----
-    st.subheader("Détail des Apports Thermiques")
+    # ---- Détail des apports ----
+    st.markdown(
+        title_with_icon("Détail des Apports Thermiques", "chart_bar", size=20),
+        unsafe_allow_html=True
+    )
     col_left, col_right = st.columns([1, 1.5])
 
     with col_left:
-        st.caption("**Apports Internes (Équipements, éclairage)**")
+        st.markdown(f'{icon("chip", 16)} <b>Apports Internes (Équipements, éclairage)</b>', unsafe_allow_html=True)
         if computed:
-            st.write(f"- 🖥️ Équipements électriques : **{results['q_equipements']:.0f} W**")
-            st.write(f"- 💡 Éclairage : **{results['q_eclairage']:.0f} W**")
+            st.write(f"- Équipements électriques : **{results['q_equipements']:.0f} W**")
+            st.write(f"- Éclairage : **{results['q_eclairage']:.0f} W**")
             st.write(f"**Total Interne : {results['q_interne']:.0f} W**")
         else:
-            st.write("- 🖥️ Équipements électriques : **0 W**")
-            st.write("- 💡 Éclairage : **0 W**")
+            st.write("- Équipements électriques : **0 W**")
+            st.write("- Éclairage : **0 W**")
             st.write("**Total Interne : 0 W**")
 
-        st.caption("**Apports par l'Enveloppe (Bâtiment)**")
+        st.markdown(f'{icon("bricks", 16)} <b>Apports par l\'Enveloppe (Bâtiment)</b>', unsafe_allow_html=True)
         if computed:
-            st.write(f"- 🧱 Murs & Toit : **{results['q_transmission']:.0f} W**")
-            st.write(f"- 🌬️ Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
+            st.write(f"- Murs & Toit : **{results['q_transmission']:.0f} W**")
+            st.write(f"- Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
             st.write(f"**Total Enveloppe : {results['q_enveloppe']:.0f} W**")
         else:
-            st.write("- 🧱 Murs & Toit : **0 W**")
-            st.write("- 🌬️ Renouvellement d'air : **0 W**")
+            st.write("- Murs & Toit : **0 W**")
+            st.write("- Renouvellement d'air : **0 W**")
             st.write("**Total Enveloppe : 0 W**")
 
         st.divider()
         if computed:
-            st.metric("**Charge Thermique Totale (Brute)**", f"{results['q_totale_brut']/1000:.2f} kW")
-            st.metric(f"**Charge avec marge ({results['marge_pourcent']}%)**", f"{results['q_totale_design']/1000:.2f} kW")
+            st.metric("Charge Thermique Totale (Brute)", f"{results['q_totale_brut']/1000:.2f} kW")
+            st.metric(f"Charge avec marge ({results['marge_pourcent']}%)", f"{results['q_totale_design']/1000:.2f} kW")
         else:
-            st.metric("**Charge Thermique Totale (Brute)**", "0.00 kW")
-            st.metric("**Charge avec marge (15%)**", "0.00 kW")
+            st.metric("Charge Thermique Totale (Brute)", "0.00 kW")
+            st.metric("Charge avec marge (15%)", "0.00 kW")
 
     with col_right:
         if computed:
@@ -1020,8 +1112,11 @@ elif menu == "Bilan Thermique":
 
     st.markdown("---")
 
-    # ---- Sensitivity graph ----
-    st.subheader("Sensibilité à la Température Extérieure")
+    # ---- Graphique de sensibilité ----
+    st.markdown(
+        title_with_icon("Sensibilité à la Température Extérieure", "trending", size=20),
+        unsafe_allow_html=True
+    )
     st.caption("Comment la puissance nécessaire du climatiseur évolue avec la chaleur extérieure.")
 
     if computed and not results['sens_data'].empty:
@@ -1046,7 +1141,10 @@ elif menu == "Bilan Thermique":
 # PAGE : Rapport PDF
 # ----------------------------------------------------
 elif menu == "Rapport":
-    st.title("📄 Génération du Rapport")
+    st.markdown(
+        title_with_icon("Génération du Rapport", "document", size=28),
+        unsafe_allow_html=True
+    )
     st.caption("Téléchargez le bilan complet au format PDF, rigoureux et professionnel.")
     st.markdown("---")
 
@@ -1060,10 +1158,10 @@ elif menu == "Rapport":
     )
 
     if not bilan_disponible:
-        st.warning("⚠️ Le bilan thermique n'a pas encore été généré.")
-        st.info("Veuillez d'abord consulter la page **Bilan Thermique** et cliquer sur 'Calculer le Bilan Thermique'.")
+        st.warning("Le bilan thermique n'a pas encore été généré.")
+        st.info("Veuillez d'abord consulter la page Bilan Thermique et cliquer sur 'Calculer le Bilan Thermique'.")
 
-        if st.button("🔄 Générer le bilan maintenant", type="primary"):
+        if st.button("Générer le bilan maintenant", type="primary"):
             pertes_armoires = st.session_state.get("pertes_armoires_w", 0.0)
             pertes_tgbt = st.session_state.get("pertes_tgbt_w", 0.0)
             pertes_armoires_aux = st.session_state.get("pertes_armoires_aux_w", 0.0)
@@ -1073,9 +1171,9 @@ elif menu == "Rapport":
             total_global = total_equip + apports_bat
 
             if total_global == 0:
-                st.error("❌ Aucune donnée disponible. Veuillez configurer les équipements et le local.")
+                st.error("Aucune donnée disponible. Veuillez configurer les équipements et le local.")
             else:
-                marge = 0.10  # 10% de marge
+                marge = 0.10
                 total_design = total_global * (1 + marge)
                 st.session_state.bilan = {
                     "total_equipements": total_equip,
@@ -1087,7 +1185,7 @@ elif menu == "Rapport":
                         "tr": round(total_design / 3516.85, 2)
                     }
                 }
-                st.success("✅ Bilan généré avec succès ! Vous pouvez maintenant générer le PDF.")
+                st.success("Bilan généré avec succès. Vous pouvez maintenant générer le PDF.")
                 st.rerun()
         st.stop()
 
@@ -1111,10 +1209,16 @@ elif menu == "Rapport":
     # ------------------------------------------------------------
     # 3. Aperçu structuré du rapport
     # ------------------------------------------------------------
-    st.subheader("📋 Aperçu du rapport")
+    st.markdown(
+        title_with_icon("Aperçu du rapport", "clipboard", size=22),
+        unsafe_allow_html=True
+    )
 
     # --- 3.1 Identification du projet ---
-    st.markdown("**1. Identification du projet**")
+    st.markdown(
+        title_with_icon("1. Identification du projet", "document", size=18),
+        unsafe_allow_html=True
+    )
     col1, col2, col3 = st.columns(3)
     col1.metric("Projet", project_data.get("nom", "N/A"))
     col2.metric("Client", project_data.get("client", "N/A"))
@@ -1123,12 +1227,15 @@ elif menu == "Rapport":
     col4.metric("N° Affaire", project_data.get("reference", "N/A"))
     col5.metric("Date", project_data.get("date", "N/A"))
     col6.metric("Statut", project_data.get("statut", "N/A"))
-    st.caption(f"**Conditions de dimensionnement :** T_ext = {project_data.get('t_ext', 0)} °C | T_int = {project_data.get('t_int', 0)} °C")
+    st.caption(f"Conditions de dimensionnement : T_ext = {project_data.get('t_ext', 0)} °C | T_int = {project_data.get('t_int', 0)} °C")
 
     st.markdown("---")
 
     # --- 3.2 Caractéristiques du local ---
-    st.markdown("**2. Caractéristiques du local**")
+    st.markdown(
+        title_with_icon("2. Caractéristiques du local", "bricks", size=18),
+        unsafe_allow_html=True
+    )
     length = building_data.get('length', 0)
     width = building_data.get('width', 0)
     height = building_data.get('height', 0)
@@ -1145,19 +1252,22 @@ elif menu == "Rapport":
     cols[1].metric("Volume", f"{volume:.1f} m³")
     cols[2].metric("Éclairage installé", f"{lighting_total:.1f} W")
     cols[3].metric("Densité éclairage", f"{lighting_total/surface:.1f} W/m²" if surface > 0 else "N/A")
-    st.caption(f"**Murs :** {wall_type}  |  **Toiture :** {roof_type}")
+    st.caption(f"Murs : {wall_type}  |  Toiture : {roof_type}")
 
     st.markdown("---")
 
     # --- 3.3 Équipements électriques ---
-    st.markdown("**3. Équipements électriques**")
+    st.markdown(
+        title_with_icon("3. Équipements électriques", "bolt", size=18),
+        unsafe_allow_html=True
+    )
 
     # Armoires A
-    st.write(f"**Armoires A :** {armoire_a_quantite} unité(s) – Pertes totales : **{pertes_armoires:.1f} W** ({pertes_armoires/1000:.2f} kW)")
+    st.write(f"Armoires A : {armoire_a_quantite} unité(s) – Pertes totales : {pertes_armoires:.1f} W ({pertes_armoires/1000:.2f} kW)")
 
     # TGBT
     if tgbt_components:
-        st.write("**TGBT – Composition détaillée :**")
+        st.write("TGBT – Composition détaillée :")
         df_tgbt = pd.DataFrame(tgbt_components)
         df_tgbt_display = df_tgbt.rename(columns={
             "nom": "Composant",
@@ -1166,13 +1276,13 @@ elif menu == "Rapport":
             "total": "Total (W)"
         })
         st.dataframe(df_tgbt_display, use_container_width=True, hide_index=True)
-        st.caption(f"**Pertes totales TGBT :** {pertes_tgbt:.1f} W ({pertes_tgbt/1000:.2f} kW)")
+        st.caption(f"Pertes totales TGBT : {pertes_tgbt:.1f} W ({pertes_tgbt/1000:.2f} kW)")
     else:
-        st.write("**TGBT :** Aucun composant configuré.")
+        st.write("TGBT : Aucun composant configuré.")
 
     # Armoires Auxiliaires
     if aux_components:
-        st.write(f"**Armoires Auxiliaires :** {aux_quantite} unité(s) identique(s)")
+        st.write(f"Armoires Auxiliaires : {aux_quantite} unité(s) identique(s)")
         df_aux = pd.DataFrame(aux_components)
         df_aux_display = df_aux.rename(columns={
             "nom": "Composant",
@@ -1181,24 +1291,27 @@ elif menu == "Rapport":
             "total": "Total (W)"
         })
         st.dataframe(df_aux_display, use_container_width=True, hide_index=True)
-        st.caption(f"**Pertes totales Auxiliaires :** {pertes_aux:.1f} W ({pertes_aux/1000:.2f} kW)")
+        st.caption(f"Pertes totales Auxiliaires : {pertes_aux:.1f} W ({pertes_aux/1000:.2f} kW)")
     else:
-        st.write("**Armoires Auxiliaires :** Aucune configurée.")
+        st.write("Armoires Auxiliaires : Aucune configurée.")
 
     st.markdown("---")
 
     # --- 3.4 Bilan thermique global ---
-    st.markdown("**4. Bilan thermique global**")
+    st.markdown(
+        title_with_icon("4. Bilan thermique global", "trending", size=18),
+        unsafe_allow_html=True
+    )
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Pertes équipements", f"{bilan_data['total_equipements']:.1f} W", f"{bilan_data['total_equipements']/1000:.2f} kW")
     col2.metric("Apports bâtiment", f"{bilan_data['apports_batiment']:.1f} W", f"{bilan_data['apports_batiment']/1000:.2f} kW")
     col3.metric("Marge de sécurité", f"{bilan_data['margin_pct']}%")
     col4.metric("Puissance HVAC", f"{bilan_data['units']['kw']:.2f} kW")
 
-    st.caption(f"**Capacité recommandée :** {bilan_data['units']['tr']:.2f} TR  |  {bilan_data['units']['btu_h']:.0f} BTU/h")
+    st.caption(f"Capacité recommandée : {bilan_data['units']['tr']:.2f} TR  |  {bilan_data['units']['btu_h']:.0f} BTU/h")
 
     # --- 3.5 Hypothèses et normes ---
-    with st.expander("📘 Hypothèses de calcul et références", expanded=False):
+    with st.expander("Hypothèses de calcul et références", expanded=False):
         st.markdown("""
         - **Méthodologie** : Calcul des apports selon la méthode **ASHRAE CLTD/CLF** (transmission, éclairage, ventilation).
         - **Normes** : 
@@ -1217,7 +1330,7 @@ elif menu == "Rapport":
     # ------------------------------------------------------------
     # 4. Génération du PDF
     # ------------------------------------------------------------
-    if st.button("📄 Générer et télécharger le PDF", use_container_width=True, type="primary"):
+    if st.button("Générer et télécharger le PDF", use_container_width=True, type="primary"):
         output_dir = "reports"
         os.makedirs(output_dir, exist_ok=True)
 
@@ -1271,12 +1384,12 @@ elif menu == "Rapport":
 
             with open(pdf_path, "rb") as f:
                 st.download_button(
-                    label="💾 Télécharger le PDF",
+                    label="Télécharger le PDF",
                     data=f,
                     file_name=os.path.basename(pdf_path),
                     mime="application/pdf",
                     use_container_width=True,
                 )
-            st.success(f"✅ PDF généré avec succès : {os.path.basename(pdf_path)}")
+            st.success(f"PDF généré avec succès : {os.path.basename(pdf_path)}")
         except Exception as e:
-            st.error(f"❌ Erreur lors de la génération du PDF : {e}")
+            st.error(f"Erreur lors de la génération du PDF : {e}")
