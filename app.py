@@ -48,14 +48,14 @@ if theme_choice == "☀️ Mode Clair":
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
             
-            /* Base */
+            /* ===== BASE ===== */
             html, body, [class*="css"], .stApp {
                 font-family: 'Inter', -apple-system, sans-serif !important;
                 background-color: #F8FAFC !important;
                 color: #1E293B !important;
             }
             
-            /* Titres */
+            /* ===== TITRES PRINCIPAUX ===== */
             h1, h2, h3, h4, h5, h6, .stTitle {
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
                 font-weight: 700 !important;
@@ -63,7 +63,55 @@ if theme_choice == "☀️ Mode Clair":
                 letter-spacing: -0.02em;
             }
             
-            /* Sidebar */
+            /* ===== TITRES AVEC ICÔNES SVG ===== */
+            .custom-title-text {
+                color: #0F172A !important;
+            }
+            
+            /* ===== TEXTE GÉNÉRAL ===== */
+            p, span, div.stMarkdown {
+                color: #1E293B !important;
+            }
+            
+            /* ===== LABELS DES CHAMPS DE SAISIE ===== */
+            label,
+            .stTextInput label,
+            .stNumberInput label,
+            .stSelectbox label,
+            .stDateInput label,
+            .stTextArea label,
+            [data-testid="stWidgetLabel"] {
+                color: #1E293B !important;
+                font-weight: 500 !important;
+            }
+            
+            /* ===== CAPTIONS ===== */
+            .stCaption,
+            [data-testid="stCaptionContainer"],
+            small {
+                color: #64748B !important;
+            }
+            
+            /* ===== MÉTRIQUES - LABELS ===== */
+            [data-testid="stMetricLabel"],
+            .stMetricLabel,
+            [data-testid="stMetricLabel"] > div {
+                color: #64748B !important;
+                font-size: 12px !important;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            
+            /* ===== MÉTRIQUES - VALEURS ===== */
+            [data-testid="stMetricValue"],
+            .stMetricValue,
+            [data-testid="stMetricValue"] > div {
+                color: #2B6CB0 !important;
+                font-family: 'Plus Jakarta Sans', sans-serif !important;
+                font-weight: 700 !important;
+            }
+            
+            /* ===== SIDEBAR ===== */
             [data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0;
@@ -72,25 +120,7 @@ if theme_choice == "☀️ Mode Clair":
                 color: #0F172A !important;
             }
             
-            /* Texte général */
-            p, div, span, label, .stMarkdown, .stCaption, .stDataFrame, .stTable {
-                color: #1E293B !important;
-            }
-            
-            /* Métriques */
-            .stMetricValue {
-                color: #2B6CB0 !important;
-                font-family: 'Plus Jakarta Sans', sans-serif !important;
-                font-weight: 700 !important;
-            }
-            .stMetricLabel {
-                color: #64748B !important;
-                font-size: 12px !important;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            
-            /* Boutons */
+            /* ===== BOUTONS ===== */
             .stButton>button {
                 font-family: 'Inter', sans-serif !important;
                 background-color: #2B6CB0 !important;
@@ -104,7 +134,7 @@ if theme_choice == "☀️ Mode Clair":
                 background-color: #1A3A6B !important;
             }
             
-            /* Cartes */
+            /* ===== CARTES ===== */
             .metric-card {
                 background-color: #FFFFFF;
                 border-radius: 8px;
@@ -114,115 +144,16 @@ if theme_choice == "☀️ Mode Clair":
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
             
-            /* Tableaux */
+            /* ===== TABLEAUX ===== */
             .stDataFrame {
                 border: 1px solid #E2E8F0;
                 border-radius: 6px;
             }
             
-            /* Séparateurs */
+            /* ===== SÉPARATEURS ===== */
             hr {
                 border-color: #E2E8F0;
             }
-            .custom-title-text { color: #0F172A !important; }
-        </style>
-    """, unsafe_allow_html=True)
-else:
-    plotly_template = "plotly_dark"
-    st.markdown("""
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-            
-            /* Base */
-            html, body, [class*="css"], .stApp {
-                font-family: 'Inter', -apple-system, sans-serif !important;
-                background-color: #0A1120 !important;
-                color: #F7FAFC !important;
-            }
-            
-            /* Titres */
-            h1, h2, h3, h4, h5, h6, .stTitle {
-                font-family: 'Plus Jakarta Sans', sans-serif !important;
-                font-weight: 700 !important;
-                color: #FFFFFF !important;
-                letter-spacing: -0.02em;
-            }
-            
-            /* Texte général, labels et captions */
-            p, div, span, label, .stMarkdown, .stCaption {
-                color: #E2E8F0 !important;
-            }
-            
-            /* Labels des champs de saisie */
-            .stTextInput label, .stNumberInput label, .stSelectbox label,
-            .stDateInput label, .stTextArea label {
-                color: #E2E8F0 !important;
-                font-weight: 500 !important;
-            }
-            
-            /* Captions */
-            .stCaption, small {
-                color: #A0AEC0 !important;
-            }
-            
-            /* Sidebar */
-            [data-testid="stSidebar"] * {
-                color: #E2E8F0 !important;
-            }
-            
-            [data-testid="stSidebar"] h2, 
-            [data-testid="stSidebar"] h3 {
-                color: #FFFFFF !important;
-            }
-            
-            /* Métriques */
-            .stMetricValue {
-                color: #63B3ED !important;
-                font-family: 'Plus Jakarta Sans', sans-serif !important;
-                font-weight: 700 !important;
-            }
-            .stMetricLabel {
-                color: #A0AEC0 !important;
-                font-size: 12px !important;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            
-            /* Boutons */
-            .stButton>button {
-                font-family: 'Inter', sans-serif !important;
-                background-color: #2B6CB0 !important;
-                color: #FFFFFF !important;
-                border-radius: 6px;
-                border: none;
-                font-weight: 600;
-                transition: background-color 0.2s ease;
-            }
-            .stButton>button:hover {
-                background-color: #4171DE !important;
-            }
-            
-            /* Cartes */
-            .metric-card {
-                background-color: #162032;
-                border-radius: 8px;
-                padding: 16px;
-                border: 1px solid #1E293B;
-                border-left: 4px solid #4171DE;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            }
-            
-            /* Tableaux */
-            .stDataFrame {
-                border: 1px solid #1E293B;
-                border-radius: 6px;
-            }
-            
-            /* Séparateurs */
-            hr {
-                border-color: #1E293B;
-            }
-            .custom-title-text { color: #FFFFFF !important; }
         </style>
     """, unsafe_allow_html=True)
 
