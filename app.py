@@ -14,7 +14,7 @@ from calculs import UnitConverter, ThermalEngine
 from local import BuildingThermalCalculator
 from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
-from icons import icon, title_with_icon   # (ou icons selon votre nom de fichier)
+from icons import icon, title_with_icon  
 
 # ====================================================
 #  CONFIGURATION DE LA PAGE
@@ -300,7 +300,7 @@ afficher_progression()
 # ----------------------------------------------------
 if menu == "Projet":
     st.markdown(
-        title_with_icon("Projet & Identification", "document", size=28),
+        title_with_icons("Projet & Identification", "document", size=28),
         unsafe_allow_html=True
     )
     st.caption("Renseignez les données administratives du projet.")
@@ -309,7 +309,7 @@ if menu == "Projet":
     with st.form("project_details_form"):
         # Section 1 : Informations Générales
         st.markdown(
-            title_with_icon("Informations Générales", "clipboard", size=20),
+            title_with_icons("Informations Générales", "clipboard", size=20),
             unsafe_allow_html=True
         )
         c1, c2 = st.columns(2)
@@ -330,7 +330,7 @@ if menu == "Projet":
 
         # Section 2 : Conditions de Dimensionnement
         st.markdown(
-            title_with_icon("Conditions de Dimensionnement", "bolt", size=20),
+            title_with_icons("Conditions de Dimensionnement", "bolt", size=20),
             unsafe_allow_html=True
         )
         col_t1, col_t2 = st.columns(2)
@@ -368,7 +368,7 @@ if menu == "Projet":
 # ----------------------------------------------------
 elif menu == "TGBT":
     st.markdown(
-        title_with_icon("Gestion du TGBT", "chart_bar", size=28),
+        title_with_icons("Gestion du TGBT", "chart_bar", size=28),
         unsafe_allow_html=True
     )
     st.caption("Composez votre TGBT en ajoutant ses composants. Les dissipations thermiques seront automatiquement sommées pour le bilan thermique.")
@@ -455,7 +455,7 @@ elif menu == "TGBT":
     # --- Affichage de la composition ---
     if st.session_state.tgbt_components:
         st.markdown(
-            title_with_icon("Composition actuelle du TGBT", "clipboard", size=20),
+            title_with_icons("Composition actuelle du TGBT", "clipboard", size=20),
             unsafe_allow_html=True
         )
         df = pd.DataFrame(st.session_state.tgbt_components)
@@ -484,7 +484,7 @@ elif menu == "TGBT":
 # ----------------------------------------------------
 elif menu == "Armoire A":
     st.markdown(
-        title_with_icon("Gestion des Armoires A", "bricks", size=28),
+        title_with_icons("Gestion des Armoires A", "bricks", size=28),
         unsafe_allow_html=True
     )
     st.caption("La composition interne des Armoires A est fixe (selon plan type). Indiquez simplement le nombre d'armoires identiques installées.")
@@ -508,7 +508,7 @@ elif menu == "Armoire A":
     # Calcul des pertes pour UNE armoire
     pertes_unitaire = 0.0
     st.markdown(
-        title_with_icon("Composition type d'une Armoire A", "clipboard", size=20),
+        title_with_icons("Composition type d'une Armoire A", "clipboard", size=20),
         unsafe_allow_html=True
     )
 
@@ -526,7 +526,7 @@ elif menu == "Armoire A":
 
     # --- Sélection de la quantité ---
     st.markdown(
-        title_with_icon("Nombre d'armoires identiques", "settings", size=20),
+        title_with_icons("Nombre d'armoires identiques", "settings", size=20),
         unsafe_allow_html=True
     )
     quantite = st.number_input("Nombre d'Armoires A identiques", min_value=0, max_value=20, step=1, value=1)
@@ -541,7 +541,7 @@ elif menu == "Armoire A":
     # --- Affichage du total enregistré ---
     if 'armoire_a_quantite' in st.session_state and st.session_state.armoire_a_quantite > 0:
         st.markdown(
-            title_with_icon("Récapitulatif", "trending", size=20),
+            title_with_icons("Récapitulatif", "trending", size=20),
             unsafe_allow_html=True
         )
         st.metric("Nombre d'armoires", st.session_state.armoire_a_quantite)
@@ -559,7 +559,7 @@ elif menu == "Armoire A":
 # ----------------------------------------------------
 elif menu == "Armoire Auxiliaire":
     st.markdown(
-        title_with_icon("Gestion des Armoires Auxiliaires", "chip", size=28),
+        title_with_icons("Gestion des Armoires Auxiliaires", "chip", size=28),
         unsafe_allow_html=True
     )
     st.caption("Définissez la composition d'une armoire auxiliaire type, puis indiquez le nombre d'exemplaires identiques.")
@@ -575,7 +575,7 @@ elif menu == "Armoire Auxiliaire":
 
     # --- 1. Sélection de la quantité (multiplicateur) ---
     st.markdown(
-        title_with_icon("Nombre d'armoires identiques", "settings", size=20),
+        title_with_icons("Nombre d'armoires identiques", "settings", size=20),
         unsafe_allow_html=True
     )
     col_qty, _ = st.columns([1, 2])
@@ -592,7 +592,7 @@ elif menu == "Armoire Auxiliaire":
 
     # --- 2. Composition libre ---
     st.markdown(
-        title_with_icon("Ajouter un composant à l'armoire type", "plus", size=20),
+        title_with_icons("Ajouter un composant à l'armoire type", "plus", size=20),
         unsafe_allow_html=True
     )
     COMPOSANTS_AUX = {
@@ -655,7 +655,7 @@ elif menu == "Armoire Auxiliaire":
     # --- 3. Affichage de la composition de l'armoire type ---
     if st.session_state.armoires_aux_components:
         st.markdown(
-            title_with_icon("Composition de l'armoire type", "clipboard", size=20),
+            title_with_icons("Composition de l'armoire type", "clipboard", size=20),
             unsafe_allow_html=True
         )
         df = pd.DataFrame(st.session_state.armoires_aux_components)
@@ -690,7 +690,7 @@ elif menu == "Armoire Auxiliaire":
 # ----------------------------------------------------
 elif menu == "Local":
     st.markdown(
-        title_with_icon("Local Électrique & Enveloppe du Bâtiment", "bricks", size=28),
+        title_with_icons("Local Électrique & Enveloppe du Bâtiment", "bricks", size=28),
         unsafe_allow_html=True
     )
     st.caption("Configurez la géométrie et les parois. L'éclairage est calculé automatiquement selon la norme EN 12464-1.")
@@ -739,7 +739,7 @@ elif menu == "Local":
 
     with st.form("local_parameters_form"):
         st.markdown(
-            title_with_icon("1. Géométrie et Parois", "bricks", size=20),
+            title_with_icons("1. Géométrie et Parois", "bricks", size=20),
             unsafe_allow_html=True
         )
         col_dim1, col_dim2 = st.columns(2)
@@ -767,7 +767,7 @@ elif menu == "Local":
             )
 
         st.markdown(
-            title_with_icon("2. Éclairage (calcul automatique)", "light_bulb", size=20),
+            title_with_icons("2. Éclairage (calcul automatique)", "light_bulb", size=20),
             unsafe_allow_html=True
         )
         st.caption("Éclairement fixé à 200 lux (norme pour local technique / armoire électrique)")
@@ -832,7 +832,7 @@ elif menu == "Local":
 
     st.markdown("---")
     st.markdown(
-        title_with_icon("Bilan des apports du local", "trending", size=20),
+        title_with_icons("Bilan des apports du local", "trending", size=20),
         unsafe_allow_html=True
     )
 
@@ -856,7 +856,7 @@ elif menu == "Local":
 # ----------------------------------------------------
 elif menu == "Bilan Thermique":
     st.markdown(
-        title_with_icon("Bilan Thermique et Dimensionnement AC", "trending", size=28),
+        title_with_icons("Bilan Thermique et Dimensionnement AC", "trending", size=28),
         unsafe_allow_html=True
     )
     st.caption(f"Projet : {st.session_state.project.get('nom', 'Projet sans nom')}")
@@ -1006,7 +1006,7 @@ elif menu == "Bilan Thermique":
 
     # ---- Synthèse du bilan ----
     st.markdown(
-        title_with_icon("Synthèse du Bilan de Puissance", "chart_pie", size=20),
+        title_with_icons("Synthèse du Bilan de Puissance", "chart_pie", size=20),
         unsafe_allow_html=True
     )
     col1, col2, col3, col4 = st.columns(4)
@@ -1034,13 +1034,13 @@ elif menu == "Bilan Thermique":
 
     # ---- Détail des apports ----
     st.markdown(
-        title_with_icon("Détail des Apports Thermiques", "chart_bar", size=20),
+        title_with_icons("Détail des Apports Thermiques", "chart_bar", size=20),
         unsafe_allow_html=True
     )
     col_left, col_right = st.columns([1, 1.5])
 
     with col_left:
-        st.markdown(f'{icon("chip", 16)} <b>Apports Internes (Équipements, éclairage)</b>', unsafe_allow_html=True)
+        st.markdown(f'{icons("chip", 16)} <b>Apports Internes (Équipements, éclairage)</b>', unsafe_allow_html=True)
         if computed:
             st.write(f"- Équipements électriques : **{results['q_equipements']:.0f} W**")
             st.write(f"- Éclairage : **{results['q_eclairage']:.0f} W**")
@@ -1050,7 +1050,7 @@ elif menu == "Bilan Thermique":
             st.write("- Éclairage : **0 W**")
             st.write("**Total Interne : 0 W**")
 
-        st.markdown(f'{icon("bricks", 16)} <b>Apports par l\'Enveloppe (Bâtiment)</b>', unsafe_allow_html=True)
+        st.markdown(f'{icons("bricks", 16)} <b>Apports par l\'Enveloppe (Bâtiment)</b>', unsafe_allow_html=True)
         if computed:
             st.write(f"- Murs & Toit : **{results['q_transmission']:.0f} W**")
             st.write(f"- Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
@@ -1091,7 +1091,7 @@ elif menu == "Bilan Thermique":
 
     # ---- Graphique de sensibilité ----
     st.markdown(
-        title_with_icon("Sensibilité à la Température Extérieure", "trending", size=20),
+        title_with_icons("Sensibilité à la Température Extérieure", "trending", size=20),
         unsafe_allow_html=True
     )
     st.caption("Comment la puissance nécessaire du climatiseur évolue avec la chaleur extérieure.")
@@ -1119,7 +1119,7 @@ elif menu == "Bilan Thermique":
 # ----------------------------------------------------
 elif menu == "Rapport":
     st.markdown(
-        title_with_icon("Génération du Rapport", "document", size=28),
+        title_with_icons("Génération du Rapport", "document", size=28),
         unsafe_allow_html=True
     )
     st.caption("Téléchargez le bilan complet au format PDF, rigoureux et professionnel.")
@@ -1187,13 +1187,13 @@ elif menu == "Rapport":
     # 3. Aperçu structuré du rapport
     # ------------------------------------------------------------
     st.markdown(
-        title_with_icon("Aperçu du rapport", "clipboard", size=22),
+        title_with_icons("Aperçu du rapport", "clipboard", size=22),
         unsafe_allow_html=True
     )
 
     # --- 3.1 Identification du projet ---
     st.markdown(
-        title_with_icon("1. Identification du projet", "document", size=18),
+        title_with_icons("1. Identification du projet", "document", size=18),
         unsafe_allow_html=True
     )
     col1, col2, col3 = st.columns(3)
@@ -1210,7 +1210,7 @@ elif menu == "Rapport":
 
     # --- 3.2 Caractéristiques du local ---
     st.markdown(
-        title_with_icon("2. Caractéristiques du local", "bricks", size=18),
+        title_with_icons("2. Caractéristiques du local", "bricks", size=18),
         unsafe_allow_html=True
     )
     length = building_data.get('length', 0)
@@ -1235,7 +1235,7 @@ elif menu == "Rapport":
 
     # --- 3.3 Équipements électriques ---
     st.markdown(
-        title_with_icon("3. Équipements électriques", "bolt", size=18),
+        title_with_icons("3. Équipements électriques", "bolt", size=18),
         unsafe_allow_html=True
     )
 
@@ -1276,7 +1276,7 @@ elif menu == "Rapport":
 
     # --- 3.4 Bilan thermique global ---
     st.markdown(
-        title_with_icon("4. Bilan thermique global", "trending", size=18),
+        title_with_icons("4. Bilan thermique global", "trending", size=18),
         unsafe_allow_html=True
     )
     col1, col2, col3, col4 = st.columns(4)
