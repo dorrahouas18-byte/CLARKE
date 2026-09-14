@@ -46,66 +46,82 @@ if theme_choice == "☀️ Mode Clair":
     st.markdown("""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+            
+            /* Base */
             html, body, [class*="css"], .stApp {
                 font-family: 'Inter', -apple-system, sans-serif !important;
                 background-color: #F8FAFC !important;
                 color: #1E293B !important;
             }
+            
+            /* Titres */
             h1, h2, h3, h4, h5, h6, .stTitle {
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
                 font-weight: 700 !important;
                 color: #0F172A !important;
+                letter-spacing: -0.02em;
             }
+            
+            /* Sidebar */
             [data-testid="stSidebar"] {
-                background-color: #F8FAFC !important;
-                border-right: 1px solid #1E293B;
+                background-color: #FFFFFF !important;
+                border-right: 1px solid #E2E8F0;
             }
             [data-testid="stSidebar"] * {
                 color: #0F172A !important;
             }
-            /* Forcer la couleur du texte sur tous les composants courants */
-            p, div, span, label, .stMarkdown, .stCaption, .stDataFrame, .stTable,
-            .stMetric, .stMetricValue, .stMetricLabel, .stSelectbox, .stNumberInput,
-            .stTextInput, .stTextArea, .stSlider, .stRadio, .stCheckbox, .stMultiselect {
+            
+            /* Texte général */
+            p, div, span, label, .stMarkdown, .stCaption, .stDataFrame, .stTable {
                 color: #1E293B !important;
             }
-            /* Valeurs des métriques en bleu, labels en gris */
+            
+            /* Métriques */
             .stMetricValue {
                 color: #2B6CB0 !important;
+                font-family: 'Plus Jakarta Sans', sans-serif !important;
+                font-weight: 700 !important;
             }
             .stMetricLabel {
                 color: #64748B !important;
-            }
-
-            .metric-card {
-                background-color: #FFFFFF;
-                border-radius: 8px;
-                padding: 18px;
-                border: 1px solid #E2E8F0;
-                border-left: 5px solid #3182CE;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            }
-            .metric-value {
-                font-family: 'Plus Jakarta Sans', sans-serif !important;
-                font-size: 26px;
-                font-weight: 800;
-                color: #2B6CB0;
-                margin-top: 4px;
-            }
-            .metric-label {
-                font-family: 'Inter', sans-serif !important;
-                font-size: 12px;
-                font-weight: 600;
-                color: #64748B;
+                font-size: 12px !important;
                 text-transform: uppercase;
+                letter-spacing: 0.05em;
             }
+            
+            /* Boutons */
             .stButton>button {
                 font-family: 'Inter', sans-serif !important;
-                background-color: #3182CE !important;
+                background-color: #2B6CB0 !important;
                 color: #FFFFFF !important;
                 border-radius: 6px;
                 border: none;
                 font-weight: 600;
+                transition: background-color 0.2s ease;
+            }
+            .stButton>button:hover {
+                background-color: #1A3A6B !important;
+            }
+            
+            /* Cartes */
+            .metric-card {
+                background-color: #FFFFFF;
+                border-radius: 8px;
+                padding: 16px;
+                border: 1px solid #E2E8F0;
+                border-left: 4px solid #2B6CB0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+            
+            /* Tableaux */
+            .stDataFrame {
+                border: 1px solid #E2E8F0;
+                border-radius: 6px;
+            }
+            
+            /* Séparateurs */
+            hr {
+                border-color: #E2E8F0;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -114,55 +130,77 @@ else:
     st.markdown("""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+            
+            /* Base */
             html, body, [class*="css"], .stApp {
                 font-family: 'Inter', -apple-system, sans-serif !important;
                 background-color: #0A1120 !important;
                 color: #F7FAFC !important;
             }
+            
+            /* Titres */
             h1, h2, h3, h4, h5, h6, .stTitle {
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
                 font-weight: 700 !important;
                 color: #FFFFFF !important;
+                letter-spacing: -0.02em;
             }
+            
+            /* Sidebar */
             [data-testid="stSidebar"] {
                 background-color: #0F172A !important;
                 border-right: 1px solid #1E293B;
             }
-            .metric-card {
-                background-color: #162032;
-                border-radius: 8px;
-                padding: 18px;
-                border: 1px solid #1E293B;
-                border-left: 5px solid #4171DE;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            }
-            .metric-value {
+            
+            /* Métriques */
+            .stMetricValue {
+                color: #63B3ED !important;
                 font-family: 'Plus Jakarta Sans', sans-serif !important;
-                font-size: 26px;
-                font-weight: 800;
-                color: #63B3ED;
-                margin-top: 4px;
+                font-weight: 700 !important;
             }
-            .metric-label {
-                font-family: 'Inter', sans-serif !important;
-                font-size: 12px;
-                font-weight: 600;
-                color: #A0AEC0;
+            .stMetricLabel {
+                color: #A0AEC0 !important;
+                font-size: 12px !important;
                 text-transform: uppercase;
+                letter-spacing: 0.05em;
             }
+            
+            /* Boutons */
             .stButton>button {
                 font-family: 'Inter', sans-serif !important;
-                background-color: #3182CE !important;
+                background-color: #2B6CB0 !important;
                 color: #FFFFFF !important;
                 border-radius: 6px;
                 border: none;
                 font-weight: 600;
+                transition: background-color 0.2s ease;
+            }
+            .stButton>button:hover {
+                background-color: #4171DE !important;
+            }
+            
+            /* Cartes */
+            .metric-card {
+                background-color: #162032;
+                border-radius: 8px;
+                padding: 16px;
+                border: 1px solid #1E293B;
+                border-left: 4px solid #4171DE;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            }
+            
+            /* Tableaux */
+            .stDataFrame {
+                border: 1px solid #1E293B;
+                border-radius: 6px;
+            }
+            
+            /* Séparateurs */
+            hr {
+                border-color: #1E293B;
             }
         </style>
     """, unsafe_allow_html=True)
-
-# Appliquer le template Plotly globalement
-px.defaults.template = plotly_template
 
 # ----------------------------------------------------
 # INITIALISATION DES ÉTATS DE SESSION
@@ -246,11 +284,41 @@ if "bilan" not in st.session_state:
 db_mgr = DatabaseManager()
 
 # ----------------------------------------------------
+# BARRE DE PROGRESSION
+# ----------------------------------------------------
+def afficher_progression():
+    """Affiche une barre de progression basée sur les étapes complétées."""
+    etapes = [
+        ("Projet", bool(st.session_state.project.get("nom", "").strip())),
+        ("Local", st.session_state.local.get("length", 0) > 0),
+        ("TGBT", len(st.session_state.get("tgbt_components", [])) > 0),
+        ("Armoires A", st.session_state.get("armoire_a_quantite", 0) > 0),
+        ("Armoires Aux.", len(st.session_state.get("armoires_aux_components", [])) > 0),
+        ("Bilan", st.session_state.get("bilan_computed", False)),
+    ]
+    total = len(etapes)
+    faites = sum(1 for _, done in etapes if done)
+    progression = faites / total
+
+    # Affichage compact
+    cols = st.columns(total)
+    for i, (nom, done) in enumerate(etapes):
+        with cols[i]:
+            if done:
+                st.markdown(f"<div style='text-align:center;font-size:12px;color:#2B6CB0;font-weight:700;'>✓ {nom}</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div style='text-align:center;font-size:12px;color:#A0AEC0;'>{nom}</div>", unsafe_allow_html=True)
+    
+    st.progress(progression, text=f"Progression : {faites}/{total} étapes complétées")
+    st.markdown("---")
+    
+# ----------------------------------------------------
 # MENU DE NAVIGATION
 # ----------------------------------------------------
-
 menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
 
+# Appel de la barre de progression
+afficher_progression()
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
 # ----------------------------------------------------
