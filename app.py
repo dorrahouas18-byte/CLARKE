@@ -91,7 +91,7 @@ if theme_choice == "☀️ Mode Clair":
                 background-color: #0F172A !important;
                 border-right: 1px solid #1E293B;
             }
-            [data-testid="stSidebar"] * { color: #E2E8F0 !important; }
+            [data-testid="stSidebar"] * { color: #F8FAFC !important; }
             [data-testid="stSidebar"] h2,
             [data-testid="stSidebar"] h3,
             [data-testid="stSidebar"] label {
