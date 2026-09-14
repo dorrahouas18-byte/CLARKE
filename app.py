@@ -156,6 +156,136 @@ if theme_choice == "☀️ Mode Clair":
             }
         </style>
     """, unsafe_allow_html=True)
+    else:
+    plotly_template = "plotly_dark"
+    st.markdown("""
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+            
+            /* ===== BASE ===== */
+            html, body, [class*="css"], .stApp {
+                font-family: 'Inter', -apple-system, sans-serif !important;
+                background-color: #0A1120 !important;
+                color: #F7FAFC !important;
+            }
+            
+            /* ===== TITRES PRINCIPAUX ===== */
+            h1, h2, h3, h4, h5, h6, .stTitle {
+                font-family: 'Plus Jakarta Sans', sans-serif !important;
+                font-weight: 700 !important;
+                color: #FFFFFF !important;
+                letter-spacing: -0.02em;
+            }
+            
+            /* ===== TITRES AVEC ICÔNES SVG ===== */
+            .custom-title-text {
+                color: #FFFFFF !important;
+            }
+            
+            /* ===== TEXTE GÉNÉRAL (paragraphes, spans) ===== */
+            p, span, div.stMarkdown {
+                color: #E2E8F0 !important;
+            }
+            
+            /* ===== LABELS DES CHAMPS DE SAISIE ===== */
+            label,
+            .stTextInput label,
+            .stNumberInput label,
+            .stSelectbox label,
+            .stDateInput label,
+            .stTextArea label,
+            [data-testid="stWidgetLabel"] {
+                color: #E2E8F0 !important;
+                font-weight: 500 !important;
+            }
+            
+            /* ===== CAPTIONS (petites notes) ===== */
+            .stCaption,
+            [data-testid="stCaptionContainer"],
+            small {
+                color: #A0AEC0 !important;
+            }
+            
+            /* ===== MÉTRIQUES - LABELS ===== */
+            [data-testid="stMetricLabel"],
+            .stMetricLabel,
+            [data-testid="stMetricLabel"] > div {
+                color: #A0AEC0 !important;
+                font-size: 12px !important;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            
+            /* ===== MÉTRIQUES - VALEURS ===== */
+            [data-testid="stMetricValue"],
+            .stMetricValue,
+            [data-testid="stMetricValue"] > div {
+                color: #63B3ED !important;
+                font-family: 'Plus Jakarta Sans', sans-serif !important;
+                font-weight: 700 !important;
+            }
+            
+            /* ===== SIDEBAR ===== */
+            [data-testid="stSidebar"] {
+                background-color: #0F172A !important;
+                border-right: 1px solid #1E293B;
+            }
+            [data-testid="stSidebar"] * {
+                color: #E2E8F0 !important;
+            }
+            [data-testid="stSidebar"] h2,
+            [data-testid="stSidebar"] h3,
+            [data-testid="stSidebar"] label {
+                color: #FFFFFF !important;
+                font-weight: 600 !important;
+            }
+            
+            /* ===== BOUTONS ===== */
+            .stButton>button {
+                font-family: 'Inter', sans-serif !important;
+                background-color: #2B6CB0 !important;
+                color: #FFFFFF !important;
+                border-radius: 6px;
+                border: none;
+                font-weight: 600;
+                transition: background-color 0.2s ease;
+            }
+            .stButton>button:hover {
+                background-color: #4171DE !important;
+            }
+            
+            /* ===== CARTES ===== */
+            .metric-card {
+                background-color: #162032;
+                border-radius: 8px;
+                padding: 16px;
+                border: 1px solid #1E293B;
+                border-left: 4px solid #4171DE;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            }
+            
+            /* ===== TABLEAUX ===== */
+            .stDataFrame {
+                border: 1px solid #1E293B;
+                border-radius: 6px;
+            }
+            
+            /* ===== SÉPARATEURS ===== */
+            hr {
+                border-color: #1E293B;
+            }
+            
+            /* ===== EXPANDER ===== */
+            [data-testid="stExpander"] {
+                background-color: #162032;
+                border: 1px solid #1E293B;
+                border-radius: 6px;
+            }
+            [data-testid="stExpander"] summary {
+                color: #E2E8F0 !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
 # INITIALISATION DES ÉTATS DE SESSION
