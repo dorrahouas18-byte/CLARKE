@@ -1,6 +1,9 @@
 """
 Module app.py - Interface AC Sizing Pro Clarke Energy
 """
+# ====================================================
+#  IMPORTS
+# ====================================================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -11,23 +14,43 @@ from calculs import UnitConverter, ThermalEngine
 from local import BuildingThermalCalculator
 from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
-from icons import icon, title_with_icon
+from icon import icon, title_with_icon   # (ou icons selon votre nom de fichier)
 
-# ----------------------------------------------------
-# MENU DE NAVIGATION
-# ----------------------------------------------------
-menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
+# ====================================================
+#  CONFIGURATION DE LA PAGE
+# ====================================================
+st.set_page_config(
+    page_title="AC Sizing Pro | Clarke Energy",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ====================================================
+#  LOGO + CAPTION
+# ====================================================
+logo_path = "assets/Logo2.png"
+if os.path.exists(logo_path):
+    st.sidebar.image(logo_path, use_container_width=True)
+else:
+    st.sidebar.warning("Logo Clarke Energy non trouvé (assets/Logo2.png)")
+
+st.sidebar.caption("Calcul Climatisation Local Technique")
 st.sidebar.markdown("---")
-if st.sidebar.button("Réinitialiser l'étude", type="secondary"):
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.rerun()
-    
-# Appel de la barre de progression
-afficher_progression()
 
-# --- INJECTION CSS DYNAMIQUE & THÈME PLOTLY ---
+# ====================================================
+#  SÉLECTEUR DE THÈME  ← DOIT ÊTRE ICI (AVANT LE CSS)
+# ====================================================
+st.sidebar.markdown("### Apparence")
+theme_choice = st.sidebar.radio(
+    "Choisir le thème visuel :",
+    ["☀️ Mode Clair", "🌙 Mode Sombre"],
+    index=0
+)
+st.sidebar.markdown("---")
 
+# ====================================================
+#  INJECTION CSS DYNAMIQUE (UTILISE theme_choice)
+# ====================================================
 if theme_choice == "☀️ Mode Clair":
     plotly_template = "plotly_white"
     st.markdown("""
@@ -154,17 +177,16 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-# ----------------------------------------------------
-# INITIALISATION DES ÉTATS DE SESSION
-# ----------------------------------------------------
+px.defaults.template = plotly_template
 
-# --- Drapeaux de progression ---
+# ====================================================
+#  INITIALISATION DES ÉTATS DE SESSION
+# ====================================================
 if "flag_projet_saved" not in st.session_state:
     st.session_state.flag_projet_saved = False
 if "flag_local_saved" not in st.session_state:
     st.session_state.flag_local_saved = False
 
-# --- Configuration Projet ---
 if "project" not in st.session_state:
     st.session_state.project = {
         "nom": "Projet Clarke Energy",
@@ -177,7 +199,6 @@ if "project" not in st.session_state:
         "t_int": 25.0
     }
 
-# --- Configuration Local ---
 if "local" not in st.session_state:
     st.session_state.local = {
         "length": 8.0, "width": 5.0, "height": 3.5,
@@ -185,20 +206,16 @@ if "local" not in st.session_state:
         "lighting_w_m2": 10.0, "ach": 1.5, "occupants": 1
     }
 
-# --- Configuration TGBT ---
 if "tgbt_components" not in st.session_state:
     st.session_state.tgbt_components = []
 if "pertes_tgbt_w" not in st.session_state:
     st.session_state.pertes_tgbt_w = 0.0
 
-# --- Configuration des Armoires A ---
 if "nb_armoires_a" not in st.session_state:
-    st.session_state.nb_armoires_a = 1  
-
+    st.session_state.nb_armoires_a = 1
 if "armoire_a_quantite" not in st.session_state:
-    st.session_state.armoire_a_quantite = 1  
+    st.session_state.armoire_a_quantite = 1
 
-# --- Configuration Armoire Auxiliaire ---
 if "armoires_aux_components" not in st.session_state:
     st.session_state.armoires_aux_components = []
 if "armoires_aux_quantite" not in st.session_state:
@@ -206,49 +223,35 @@ if "armoires_aux_quantite" not in st.session_state:
 if "pertes_armoires_aux_w" not in st.session_state:
     st.session_state.pertes_armoires_aux_w = 0.0
 
-# --- Résultats du Bilan Thermique ---
 if "bilan_results" not in st.session_state:
     st.session_state.bilan_results = {
-        'q_equipements': 0.0,
-        'q_eclairage': 0.0,
-        'q_interne': 0.0,
-        'q_transmission': 0.0,
-        'q_ventilation': 0.0,
-        'q_enveloppe': 0.0,
-        'q_totale_brut': 0.0,
-        'q_totale_design': 0.0,
-        'puissance_kw': 0.0,
-        'puissance_btu': 0.0,
-        'puissance_tr': 0.0,
-        'debit_air': 0.0,
-        'marge_pourcent': 15,
-        'q_interne_display': 0.0,
-        'q_enveloppe_display': 0.0,
-        'pie_data': pd.DataFrame(),
-        'sens_data': pd.DataFrame()
+        'q_equipements': 0.0, 'q_eclairage': 0.0, 'q_interne': 0.0,
+        'q_transmission': 0.0, 'q_ventilation': 0.0, 'q_enveloppe': 0.0,
+        'q_totale_brut': 0.0, 'q_totale_design': 0.0,
+        'puissance_kw': 0.0, 'puissance_btu': 0.0, 'puissance_tr': 0.0,
+        'debit_air': 0.0, 'marge_pourcent': 15,
+        'q_interne_display': 0.0, 'q_enveloppe_display': 0.0,
+        'pie_data': pd.DataFrame(), 'sens_data': pd.DataFrame()
     }
 if "bilan_computed" not in st.session_state:
     st.session_state.bilan_computed = False
 
-# --- Résultats de calcul (pour les autres pages) ---
 if "pertes_armoires_w" not in st.session_state:
     st.session_state.pertes_armoires_w = 0.0
-
 if "apports_batiment_w" not in st.session_state:
     st.session_state.apports_batiment_w = 0.0
-
 if "bilan" not in st.session_state:
     st.session_state.bilan = {}
-# ----------------------------------------------------
-# INITIALISATION DE LA BASE DE DONNÉES
-# ----------------------------------------------------
+
+# ====================================================
+#  BASE DE DONNÉES
+# ====================================================
 db_mgr = DatabaseManager()
 
-# ----------------------------------------------------
-# BARRE DE PROGRESSION
-# ----------------------------------------------------
+# ====================================================
+#  FONCTION : BARRE DE PROGRESSION
+# ====================================================
 def afficher_progression():
-    """Affiche une barre de progression basée sur les étapes réellement complétées."""
     etapes = [
         ("Projet", st.session_state.get("flag_projet_saved", False)),
         ("Local", st.session_state.get("flag_local_saved", False)),
@@ -271,7 +274,26 @@ def afficher_progression():
     
     st.progress(progression, text=f"Progression : {faites}/{total} étapes complétées")
     st.markdown("---")
-    
+
+# ====================================================
+# 9. MENU DE NAVIGATION  ← APRÈS LA DÉFINITION DE LA FONCTION
+# ====================================================
+menu = st.sidebar.radio(
+    "Navigation",
+    ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"]
+)
+st.sidebar.markdown("---")
+
+if st.sidebar.button("Réinitialiser l'étude", type="secondary"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+
+# ====================================================
+#  APPEL DE LA BARRE DE PROGRESSION
+# ====================================================
+afficher_progression()
+
 
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
