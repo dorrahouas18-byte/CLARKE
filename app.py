@@ -38,7 +38,7 @@ st.sidebar.caption("Calcul Climatisation Local Technique")
 st.sidebar.markdown("---")
 
 # ====================================================
-#  SÉLECTEUR DE THÈME  ← DOIT ÊTRE ICI (AVANT LE CSS)
+#  SÉLECTEUR DE THÈME  
 # ====================================================
 st.sidebar.markdown("### Apparence")
 theme_choice = st.sidebar.radio(
@@ -274,9 +274,9 @@ def afficher_progression():
     
     st.progress(progression, text=f"Progression : {faites}/{total} étapes complétées")
     st.markdown("---")
-
+    
 # ====================================================
-# 9. MENU DE NAVIGATION  ← APRÈS LA DÉFINITION DE LA FONCTION
+#  MENU DE NAVIGATION  
 # ====================================================
 menu = st.sidebar.radio(
     "Navigation",
