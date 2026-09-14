@@ -1040,7 +1040,7 @@ elif menu == "Bilan Thermique":
     col_left, col_right = st.columns([1, 1.5])
 
     with col_left:
-        st.markdown(f'{icons("chip", 16)} <b>Apports Internes (Équipements, éclairage)</b>', unsafe_allow_html=True)
+        st.markdown(f'{icon("chip", 16)} <b>Apports Internes (Équipements, éclairage)</b>', unsafe_allow_html=True)
         if computed:
             st.write(f"- Équipements électriques : **{results['q_equipements']:.0f} W**")
             st.write(f"- Éclairage : **{results['q_eclairage']:.0f} W**")
@@ -1050,7 +1050,7 @@ elif menu == "Bilan Thermique":
             st.write("- Éclairage : **0 W**")
             st.write("**Total Interne : 0 W**")
 
-        st.markdown(f'{icons("bricks", 16)} <b>Apports par l\'Enveloppe (Bâtiment)</b>', unsafe_allow_html=True)
+        st.markdown(f'{icon("bricks", 16)} <b>Apports par l\'Enveloppe (Bâtiment)</b>', unsafe_allow_html=True)
         if computed:
             st.write(f"- Murs & Toit : **{results['q_transmission']:.0f} W**")
             st.write(f"- Renouvellement d'air : **{results['q_ventilation']:.0f} W**")
