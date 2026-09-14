@@ -13,6 +13,19 @@ from base_donnees import DatabaseManager
 from rapport import PDFReportGenerator
 from icons import icon, title_with_icon
 
+# ----------------------------------------------------
+# MENU DE NAVIGATION
+# ----------------------------------------------------
+menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
+st.sidebar.markdown("---")
+if st.sidebar.button("Réinitialiser l'étude", type="secondary"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+    
+# Appel de la barre de progression
+afficher_progression()
+
 # --- INJECTION CSS DYNAMIQUE & THÈME PLOTLY ---
 
 if theme_choice == "☀️ Mode Clair":
@@ -259,18 +272,6 @@ def afficher_progression():
     st.progress(progression, text=f"Progression : {faites}/{total} étapes complétées")
     st.markdown("---")
     
-# ----------------------------------------------------
-# MENU DE NAVIGATION
-# ----------------------------------------------------
-menu = st.sidebar.radio("Navigation", ["Projet", "Local", "TGBT", "Armoire A", "Armoire Auxiliaire", "Bilan Thermique", "Rapport"])  
-st.sidebar.markdown("---")
-if st.sidebar.button("Réinitialiser l'étude", type="secondary"):
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.rerun()
-    
-# Appel de la barre de progression
-afficher_progression()
 
 # ----------------------------------------------------
 # PAGE : Projet (données administratives)
